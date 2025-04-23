@@ -1,0 +1,751 @@
+# Confuración del proyecto de Semaforos.
+año_actual : "2025"
+Año_act : "Año_act"
+path_Resultados : "Resultados/"
+
+estrategias_semaforo: &seccion_comun
+ "Snackermanía 3.0": col_comas
+ "Neverízate 2.0": col_comas
+
+list_meses:
+ - "ENE"
+ - "FEB"
+ - "MAR"
+ - "ABR"
+ - "MAY"
+ - "JUN"
+ - "JUL"
+ - "AGO"
+ - "SEP"
+ - "OCT"
+ - "NOV"
+ - "DIC"
+
+#Insumos de la automatización. 
+Insumos: 
+ path_insumos: "Insumos/" #Representa el nombre del directorio donde están contenidos. 
+ path_univeros: "Insumos/Universos/"
+ path_cli_inac : "Insumos/Maestras_inactivos/"
+ path_ventas: "Insumos/Ventas/"
+ 
+
+ Historico_Vtas:
+  nom_base: "Historico_Vtas.xlsx"
+  nom_hoja: "Historico_Vtas"
+
+ maestra_clientes_dir_indir:
+  nom_base_indir: "Maestra Clientes Inactivos Indirecta.xlsb"
+  nom_base_dir: "Maestra Clientes Inactivos Directa.xlsb"
+  nom_hoja: BD
+  cols: 23
+  engine: pyxlsb
+  renombrar_cols:
+    "Cod Cliente": "Cod Cliente"
+    "Razón Social": "Razón Social"
+    "Nombre Comercial": "Nombre Comercial"
+    "Cód. Jefe de Ventas": "Cód. JV"
+    "Jefe de Ventas": "Jefe de Ventas"
+    "Función Inter.": "Función Inter."
+    "Cód. Vendedor": "Cód. Vendedor"
+    "Nombre Vendedor": "Nombre Vendedor Orig."
+    "Canal Transformado": "Canal Trans."
+    "Subcanal Transformado": "Sub Canal Trans."
+    "Segmento Transformado": "Segmento Trans."
+    "Cód. Oficina de Ventas": "Cód. OV"
+    "Oficina de Ventas": "Oficina de Ventas"
+    "Regional" : "Regional"
+    "Región" : "Región" 
+    "Dirección" : "Dirección"
+    "Barrio" : "Barrio"
+    "Municipio" : "Municipio"
+    "Departamento" : "Departamento"
+    "Tipo Población" : "Tipo Población"
+    "Coordenadas Unificado (Y-X)" : "Coordenadas Unificado (Y-X)"
+    "Cod Actual" : "Cod Actual"
+    "Cliente" : "Cliente" 
+
+    
+ #Archivos de ventas
+ Ventas_Muebles_PPago_Neve:
+  nom_base:
+   - "Ventas_Muebles_Snackeros.xlsx"
+   - "Ventas_Neveras_de_Conservación.xlsx"
+  nom_hoja: 
+   - Consolidado
+   - Informe 1
+  nom_sub_bases:
+   - vts_snkros 
+   - vtas_pp
+   - vts_nevrs
+  cols: 10
+  cols_necesarias: 
+   - "Cliente - Clave"
+   - "Tipo de Venta"
+   - "Código ECOM"
+   - "Agente Comercial - Clave"
+   - "Venta $" 
+  dict_cols_necesarias:
+    "Cliente - Clave" : "Cliente - Clave"
+    "Tipo de Venta" : "Tipo de Venta"
+    "Código ECOM" : "Código ECOM"
+    "Agente Comercial - Clave" : "Agente Comercial - Clave"
+    "Venta $"  : "Venta $" 
+  cols_rename: 
+   "Cliente - Clave" : "Cliente - Clave"
+  cols_constantes:
+   Act_snk:
+    Columna: Tipo Activo 
+    Valor:  "Snackeros"
+   Act_Nev:
+    Columna: Tipo Activo 
+    Valor: "Neveras"
+   Act_PP:
+    Columna: Tipo Activo 
+    Valor: "Puestos de Pago"
+  cols_concat:
+    Directa:
+      Columnas: 
+       - Cliente - Clave 
+       - Tipo Activo 
+      Nombre: key_vtas
+    Indirecta:
+      Columnas:
+      - Agente Comercial - Clave
+      - Código ECOM
+      - Tipo Activo 
+      Nombre: key_vtas
+  cols_agrup:
+    Indirecta:
+      group_col: 
+       - key_vtas
+      sum_col:
+       - Venta $ 
+  cols_select_final: 
+    - key_vtas
+    - Venta $
+  meses_a_numero:
+   "ENE" : 1
+   "FEB" : 2
+   "MAR" : 3
+   "ABR" : 4
+   "MAY" : 5
+   "JUN" : 6
+   "JUL" : 7
+   "AGO" : 8
+   "SEP" : 9
+   "OCT" : 10
+   "NOV" : 11
+   "DIC" : 12
+  fillna_vtas_estatus:
+   - 0
+   - NR
+  nuevas_cols:
+    "Fecha Instalación Ajustada": "Fecha Instalación Ajustada"
+    "Venta Acum." : "Venta Acum."
+    "TIEMPO EN ROJO" : "TIEMPO EN ROJO"
+    "Año_act" : "Año_act"
+
+#Maestras de activos    
+ Maestra_Activos_SAP: 
+   nom_base: "Maestra Activos SAP.xlsx"
+   nom_hoja: "Activos_SAP"
+   cols: 19
+   cols_nuevas_necesarias:
+    Cód. Barras : NºInventar
+    Nombre del Activo : Denominación objeto
+    Cliente : Cliente
+    Status : StatUsu
+    Modelo : MODELO
+    Centro : Ce.
+    Fecha Suministro : Fe.suministro
+    Fecha Creación : Creado el
+   cols_necesarias:
+    - Cód. Barras
+    - Nombre del Activo
+    - Cliente
+    - Status
+    - Modelo
+    - Centro
+    - Fecha Suministro
+    - Fecha Creación
+   cols_constantes:
+      "col_comas": 
+       - ", "
+       - "string"
+      "N.de Activos": 
+       - 1 
+       - "int8"
+   cols_mod_nulos:
+      Fecha:
+        col_fuente: "Creado el" 
+        col_destino: "Fe.suministro"
+   cols_concat:
+      <<: *seccion_comun
+      "NºInventar" : col_comas
+      "Fe.suministro" :  col_comas
+      "Denominación objeto" : col_comas
+      "Mantenimiento Nev": col_comas
+      "Garantia Nev": col_comas
+   cols_agrup_concat:
+    - "Cliente"
+    - "Tipo Activo"
+    - "MODELO"
+    - "NºInventar"
+    - "Fe.suministro" 
+    - "Denominación objeto"
+    - "N.de Activos"
+    - "Cargue"
+    - "TOP_VERDE"
+    - "TOP_ROJO"
+    - "Mantenimiento Nev"
+    - "Garantia Nev"
+   cols_mod_fecha:
+    - "Fe.suministro"
+    - "Creado el"
+   cols_eliminar:
+    - Ce.
+    - StatUsu
+    - __index_level_0__
+    - Creado el
+   Filtros:
+    Cliente:
+     Columna: Cliente 
+     Valor: "1"
+    Modelo:
+     Columna: MODELO
+     Valor: "Directa"
+    StatUsu:
+     Columna: StatUsu
+     Valor: 
+      - EQBJ
+      - EQBG
+    NºInventar: 
+     Columna: NºInventar
+    Denominación objeto:
+     Columna: Denominación objeto
+     
+ Maestra_Activos_Indirecta: 
+   nom_base: "Maestra Activos INDIRECTA.xlsx" 
+   nom_hoja: "Activos_Indirecta"
+   cols: 16
+   cols_necesarias:
+    - "Cód. Barras"
+    - "Nombre Activo Indirecta"
+    - "Fecha Exhibidor"
+    - "Fecha Comodato"
+    - "Cód. Cliente"
+    - "Cód. Agente Comercial"
+
+   cols_renombrar: 
+    "Cód. Barras" : "NºInventar"
+    "Nombre Activo Indirecta" : "Denominación objeto"
+    "Cód. Cliente": "Cod. Cliente"
+    "Fecha Exhibidor": "Creado el"
+    "Fecha Comodato": "Fe.suministro"
+    "Cód. Agente Comercial" : "r_id_agente_comercial"
+
+   cols_constantes:
+     "col_comas": 
+       - ", "
+       - "string"
+     "N.de Activos": 
+       - 1 
+       - "int8"
+     "MODELO":
+       - "Indirecta"
+       - "string"
+
+   cols_mod_nulos:
+    Fecha:
+      col_fuente: "Creado el" 
+      col_destino: "Fe.suministro"
+
+   cols_eliminar: "Cod. Cliente"
+
+   cols_concat:
+    <<: *seccion_comun
+    "r_id_agente_comercial" : "Cod. Cliente"
+    "NºInventar" : col_comas
+    "Fe.suministro" :  col_comas
+    "Denominación objeto" : col_comas
+    "Mantenimiento Nev": col_comas
+    "Garantia Nev": col_comas
+   cols_mod_fecha:
+    - "Fecha Comodato"
+    - "Fecha Exhibidor"
+   Filtros:
+    Cod. Cliente:
+     Columna: "Cod. Cliente"
+     Valor: "0"
+    NºInventar: 
+     Columna: NºInventar
+    Denominación objeto:
+       Columna: Denominación objeto
+
+  #Universos de clientes
+ Universos_directa_indirecta:
+   nom_base_dir : "UniversoDirecta.xlsb"
+   nom_base_indir : "UniversoIndirecta.xlsb"
+   nom_hoja: "BD"
+   cols: 23
+   engine: pyxlsb
+   columnas_necesarias:
+      - Cod Cliente
+      - Razón Social
+      - Nombre Comercial
+      - Cód. Jefe de Ventas
+      - Jefe de Ventas
+      - Función Inter.
+      - Cód. Vendedor
+      - Nombre Vendedor
+      - Canal Transformado
+      - Sub Canal Trans.
+      - Segmento Trans.
+      - Cód. OV
+      - Oficina de Ventas
+      - Regional
+      - Región
+      - Dirección
+      - Barrio
+      - Municipio
+      - Departamento
+      - Tipo Población
+      - Coordenadas Unificado (Y-X)
+      - Cod Actual
+      - Cliente
+   renombrar_cols:
+      "Cod Cliente": "Cod Cliente"
+      "Razón Social": "Razón Social"
+      "Nombre Comercial": "Nombre Comercial"
+      "Cód. Jefe de Ventas": "Cód. JV"
+      "Jefe de Ventas": "Jefe de Ventas"
+      "Función Inter.": "Función Inter."
+      "Cód. Vendedor": "Cód. Vendedor"
+      "Nombre Vendedor": "Nombre Vendedor Orig."
+      "Canal Transformado": "Canal Trans."
+      "Subcanal Transformado": "Sub Canal Trans."
+      "Segmento Transformado": "Segmento Trans."
+      "Cód. Oficina de Ventas": "Cód. OV"
+      "Oficina de Ventas": "Oficina de Ventas"
+      "Regional" : "Regional"
+      "Región" : "Región" 
+      "Dirección" : "Dirección"
+      "Barrio" : "Barrio"
+      "Municipio" : "Municipio"
+      "Departamento" : "Departamento"
+      "Tipo Población" : "Tipo Población"
+      "Coordenadas Unificado (Y-X)" : "Coordenadas Unificado (Y-X)"
+      "Cod Actual" : "Cod Actual"
+      "Cliente" : "Cliente"
+
+#Manipulacion de drivers.
+Drivers:
+ path_drivers: "Insumos/Drivers/"
+ nom_base : "Drivers.xlsx"
+ nom_hoja: 
+   "Activos y Estrategias" : "Activos y Estrategias"
+   "Activos y Cargues": "Activos y Cargues"
+   "HISTÓRICO TOPES": "HISTÓRICO TOPES"
+   "DRIVER REGIONALES" : "DRIVER REGIONALES"
+   "Jefes y Agentes" : "Jefes y Agentes"
+   "Clientes con Atributos" : "Clientes con Atributos"
+ cols:
+   "Activos y Cargues": 9
+   "Activos y Estrategias": 5
+   "HISTÓRICO TOPES" : 3
+   "DRIVER REGIONALES" : 3
+   "Clientes con Atributos" : 4
+   "Jefes y Agentes" : 3
+    
+ cols_necesarias: 
+   Activos y Cargues:
+     cols_cambiar_tipo_dato:
+       - Cargue
+       - TOP_VERDE
+       - TOP_ROJO
+   
+   HISTÓRICO TOPES:
+    Cliente / Estrategia : Cliente / Estrategia
+    TOPE VERDE : TOPE VERDE
+    TOPE ROJO : TOPE ROJO
+
+   DRIVER REGIONALES:
+    Of Vtas : Of Vtas 
+    Regional : Regional
+    Región : Región
+
+   driver_topes_campañas: 
+     INFORME: Tipo Activo
+     NOMBRE SAP ORIGINAL: Denominación objeto
+     VALOR CARGUE: Cargue
+     VERDE: TOP_VERDE
+     ROJO: TOP_ROJO
+
+   driver_act_indir: 
+     - NOMBRE ECOM ORIGINAL 
+     - NOMBRE NORMALIZADO A SAP
+  
+   Activos y Estrategias:
+    - "ESTRATEGIA" 
+    - "CÓDIGO DE BARRAS" 
+   
+ Nev_mantto:
+   nom_base : "Neveras en Mantenimiento.xlsx"
+   nom_hoja: "Mantenimiento Neveras"
+   cols: 1
+   cols_duplicar:  
+     CÓDIGO DE BARRAS:
+       NºInventar
+    
+   cols_rename: 
+    CÓDIGO DE BARRAS: "Mantenimiento Nev"
+      
+ Neveras_garantia:
+   nom_base : "Neveras en Garantía.xlsx"
+   nom_hoja: "Garantía Neveras"
+   cols: 1
+
+   cols_duplicar:  
+     CÓDIGO DE BARRAS:
+       - NºInventar
+    
+   cols_rename: 
+    CÓDIGO DE BARRAS : "Garantia Nev"
+  
+  #Maestras de Clientes.
+ Maestra_Clientes_Directa:
+   nom_base : "Maestra Activos SAP.xlsx" 
+   nom_hoja: "Hoja1"
+   cols: 15
+   cols_necesarias:
+     - Denominación objeto
+     - NºInventar
+     - Cliente
+     - Ce.
+     - StatUsu
+     - Fe.suministro
+     - Creado el
+ Maestra_Clientes_Indirecta:
+  nom_base : "Maestra Activos SAP.xlsx" 
+  nom_hoja: "Hoja1"
+  cols: 15
+  cols_necesarias:
+   - Denominación objeto
+   - NºInventar
+   - Cliente
+   - Ce.
+   - StatUsu
+   - Fe.suministro
+   - Creado el
+   
+ Estado_acumulado:
+   nom_base : "Estado Cliente x Mes - Semáforo de Activos.xlsx"
+   nom_hojas:
+     "ENE" : "ENE"
+     "FEB" : "FEB"
+     "MAR" : "MAR"
+     "ABR" : "ABR"
+     "MAY" : "MAY"
+     "JUN" : "JUN"
+     "JUL" : "JUL"
+     "AGO" : "AGO"
+     "SEP" : "SEP"
+     "OCT" : "OCT"
+     "NOV" : "NOV"
+     "DIC" : "DIC"
+   cols_necesarias:
+     - "Concatenar Cliente y Estrategia"
+     - "Mes Nombre"
+     - "Estado Mes"
+    
+base_final:
+  cols_borrar_duplicados: 
+   - Cliente
+   - Seg
+  config_para_campañas:
+    cols_necesarias:
+      Tipo Activo : Tipo Activo
+      Estrategia_Agrupada : Estrategia_Agrupada
+    dict_reemplazos_estg:
+      "True" : "Sí"
+      "False" : "No"
+  cols_faltantes_posibles:
+    Estatus_Venta $ ENE : Venta $ ENE
+    Estatus_Venta $ FEB : Venta $ FEB
+    Estatus_Venta $ MAR : Venta $ MAR 
+    Estatus_Venta $ ABR : Venta $ ABR 
+    Estatus_Venta $ MAY : Venta $ MAY 
+    Estatus_Venta $ JUN : Venta $ JUN 
+    Estatus_Venta $ JUL : Venta $ JUL 
+    Estatus_Venta $ AGO : Venta $ AGO 
+    Estatus_Venta $ SEP : Venta $ SEP 
+    Estatus_Venta $ OCT : Venta $ OCT 
+    Estatus_Venta $ NOV : Venta $ NOV 
+    Estatus_Venta $ DIC : Venta $ DIC 
+  ajustar_cols_constantes:
+    Directa:
+     "Razón Social": "VALIDAR"
+     "Nombre Comercial": "VALIDAR"
+     "Cód. JV": "-"
+     "Jefe de Ventas": "VALIDAR"
+     "Cód. Vendedor": "VALIDAR"
+     "Nombre Vendedor Orig.": "VALIDAR"
+     "Cod Cliente" : "-" #Antes Ecom
+     "Cod Actual" : "-"
+     "Canal Trans." : "Tradicional"
+     "Sub Canal Trans." : "Tiendas"
+     "Segmento Trans." : "Tienda Mixta"
+     "Municipio" : "N/A"
+     "Departamento" : "N/A"
+     "Barrio" : "-"
+     "Dirección" : "-"
+     "Coordenadas Unificado (Y-X)" : "-"
+     "Tipo Población" : "-"
+     "Cód. Vendedor" : "-"
+     "Nombre Vendedor Orig." : "VALIDAR"
+    Indirecta:
+     "Canal Trans.": "Tradicional"
+     "Sub Canal Trans.": "Tiendas"
+     "Segmento Trans.": "Tienda Mixta"
+     "Municipio": "N/A"
+     "Departamento" : "N/A"
+     "Barrio" : "-"
+     "Dirección" : "-"
+     "Cod Actual" : "-"
+     "Coordenadas Unificado (Y-X)" : "-"
+     "Tipo Población" : "-"
+     "Cód. Vendedor" : "-"
+     "Nombre Vendedor Orig." : "VALIDAR"
+  ajustar_cols_remp_indir:
+   "Razón Social": "Razón Social"
+   "Nom. Comercial": "Nombre Comercial"
+   "Cód. Agente Comercial": "Cód. JV"
+   "Nombre Agente Comercial": "Jefe de Ventas"
+
+  orden_final_cols:
+   "Cliente" : "Cliente"
+   "Cod Cliente" : "Cod Cliente"
+   "Tipo Activo" : "Tipo Activo"
+   'Concatenar Cliente y Estrategia' : 'Concatenar Cliente y Estrategia'
+   "Denominación objeto" : "Denominación objeto"
+   "NºInventar" : "Cod Barras"
+   "Fe.suministro" : "Fe.suministro"
+   "Año_act" : "Año_act"
+   "Mes_act" : "Mes_act"
+   "Razón Social" : "Razón Social"
+   "Nombre Comercial" : "Nombre Comercial"
+   "Cód. JV" : "Cód. JV"
+   "Jefe de Ventas" : "Jefe de Ventas"
+   "Cód. Vendedor": "Cód. Vendedor"
+   "Nombre Vendedor Orig.": "Nombre Vendedor Orig."
+   "Cod Actual"  : "Cod Actual"
+   "Canal Trans.": "Canal Trans."
+   "Sub Canal Trans.": "Sub Canal Trans."
+   "Segmento Trans": "Segmento Trans."
+   "Oficina de Ventas": "Oficina de Ventas"
+   "Cód. OV": "Cód. OV"
+   "Municipio": "Municipio"
+   "Barrio" : "Barrio"
+   "Región": "Región"
+   "Regional" : "Regional"
+   "Dirección" : "Dirección"
+   "Departamento" : "Departamento"
+   "Tipo Población" : "Tipo Población"
+   "Coordenadas Unificado (Y-X)" : "Coordenadas Unificado (Y-X)"
+   "Fecha Instalación Ajustada" : "Fecha Instalación Ajustada"
+   "MODELO" : "MODELO"
+   "Venta Acum." : "Venta Acum."
+   "Venta $ ENE" : "Venta $ ENE"
+   "Venta $ FEB" : "Venta $ FEB"
+   "Venta $ MAR" : "Venta $ MAR"
+   "Venta $ ABR" : "Venta $ ABR"
+   "Venta $ MAY" : "Venta $ MAY"
+   "Venta $ JUN" : "Venta $ JUN"
+   "Venta $ JUL" : "Venta $ JUL"
+   "Venta $ AGO" : "Venta $ AGO"
+   "Venta $ SEP" : "Venta $ SEP"
+   "Venta $ OCT" : "Venta $ OCT"
+   "Venta $ NOV" : "Venta $ NOV"
+   "Venta $ DIC" : "Venta $ DIC"
+   "PENDIENTE DE VENTA" : "PENDIENTE DE VENTA" 
+   "PENDIENTE DE META" : "PENDIENTE DE META"
+   "Conteo_meses" : "Conteo_meses"
+   "N.de Activos" : "N.de Activos"
+   "Estatus_Venta Acum." : "Estatus_Venta Acum."
+   "Cargue" : "Cargue"
+   "TOP_VERDE" : "TOP_VERDE"
+   "TOP_ROJO" : "TOP_ROJO"
+   "Mantenimiento Nev" : "Mantenimiento Nev"
+   "Garantia Nev" : "Garantia Nev"
+   "Snackermanía 3.0" : "Snackermanía 3.0"
+   "Neverízate 2.0" : "Neverízate 2.0"
+   "Estrategia_Agrupada" : "Estrategia_Agrupada" 
+   "Cliente Inactivo" : "Cliente Inactivo"
+   "Estatus_Venta $ ENE" : "Estatus_Venta $ ENE"
+   "Estatus_Venta $ FEB" : "Estatus_Venta $ FEB"
+   "Estatus_Venta $ MAR" : "Estatus_Venta $ MAR"
+   "Estatus_Venta $ ABR" : "Estatus_Venta $ ABR"
+   "Estatus_Venta $ MAY" : "Estatus_Venta $ MAY"
+   "Estatus_Venta $ JUN" : "Estatus_Venta $ JUN"
+   "Estatus_Venta $ JUL" : "Estatus_Venta $ JUL"
+   "Estatus_Venta $ AGO" : "Estatus_Venta $ AGO"
+   "Estatus_Venta $ SEP" : "Estatus_Venta $ SEP"
+   "Estatus_Venta $ OCT" : "Estatus_Venta $ OCT"
+   "Estatus_Venta $ NOV" : "Estatus_Venta $ NOV"
+   "Estatus_Venta $ DIC" : "Estatus_Venta $ DIC"
+   "TIEMPO EN ROJO" : "TIEMPO EN ROJO"
+   "Conteo_Condicional" : "TIEMPO VENTA CERO"
+
+  orden_modificado:
+    {
+    "Tipo Activo": "Estrategia",
+    "Concatenar Cliente y Estrategia": "Concatenar Cliente y Estrategia",
+    "Cliente": "Concatenar Cliente",
+    "Cod Barras": "Cod Barras",
+    "Año_act": "Año",
+    "Mes_act": "Mes",
+    "MODELO": "Modelo",
+    "Cod Actual": "Cod Actual",
+    "Razón Social": "Razón Social",
+    "Nombre Comercial": "Nombre Comercial",
+    "Cód. JV": "Cód. Jefe de Ventas",
+    "Jefe de Ventas": "Jefe de Ventas",
+    "Cód. Vendedor": "Cód. Vendedor",
+    "Nombre Vendedor Orig.": "Vendedor",
+    "Cod Cliente": "Cód. Cliente PDV",
+    "Canal Trans.": "Canal Transformado",
+    "Sub Canal Trans.": "Subcanal Transformado",
+    "Segmento Trans.": "Segmento Transformado",
+    "Dirección": "Dirección",
+    "Barrio": "Barrio",
+    "Municipio": "Municipio",
+    "Departamento": "Departamento",
+    "Tipo Población": "Tipo Población",
+    "Coordenadas Unificado (Y-X)": "Coordenadas Unificado (Y-X)",
+    "Cód. OV": "Cód. Oficina de Ventas",
+    "Oficina de Ventas": "Oficina de Ventas",
+    "Regional": "Regional",
+    "Región": "Región",
+    "Fe.suministro": "Fecha Instalación",
+    "Denominación objeto": "Descripción Activo",
+    "Conteo_meses": "N. Meses",
+    "N.de Activos": "N. Activos",
+    "TOP_ROJO": "Venta Amarillo",
+    "TOP_VERDE": "Venta Verde",
+    "Estatus_Venta Acum.": "Estado Acumulado",
+    "Cargue": "Cargue Activo(s)",
+    "Mantenimiento Nev": "Mantenimiento",
+    "Garantia Nev": "Omitir",
+    Venta Cero o Negativo Mes: "Venta Cero o Negativo Mes",
+    "Cliente Inactivo": "Cliente Inactivo",
+    "Cliente Al Margen X 10000": "Cliente Al Margen x $10.000",
+    "Snackermanía 3.0": "Snackermanía Actual",
+    "Neverízate 2.0": "Neverízate Actual",
+    "Socios Nutresa": "Socio Nutresa",
+    "Mercaderismo": "Mercaderismo",
+    "Vendedor AU": "Vendedor AU Indirecta",
+    "Estatus_Venta $ ENE": "ENE2025",
+    "Estatus_Venta $ FEB": "FEB2025",
+    "Estatus_Venta $ MAR": "MAR2025",
+    "Estatus_Venta $ ABR": "ABR2025",
+    "Estatus_Venta $ MAY": "MAY2025",
+    "Estatus_Venta $ JUN": "JUN2025",
+    "Estatus_Venta $ JUL": "JUL2025",
+    "Estatus_Venta $ AGO": "AGO2025",
+    "Estatus_Venta $ SEP": "SEP2025",
+    "Estatus_Venta $ OCT": "OCT2025",
+    "Estatus_Venta $ NOV": "NOV2025",
+    "Estatus_Venta $ DIC": "DIC2025",
+    "TIEMPO EN ROJO": "Tiempo Rojo",
+    "TIEMPO VENTA CERO": "Tiempo Venta Cero",
+    "Venta $ ENE": "Enero",
+    "Venta $ FEB": "Febrero",
+    "Venta $ MAR": "Marzo",
+    "Venta $ ABR": "Abril",
+    "Venta $ MAY": "Mayo",
+    "Venta $ JUN": "Junio",
+    "Venta $ JUL": "Julio",
+    "Venta $ AGO": "Agosto",
+    "Venta $ SEP": "Septiembre",
+    "Venta $ OCT": "Octubre",
+    "Venta $ NOV": "Noviembre",
+    "Venta $ DIC": "Diciembre",
+    "Venta Acum.": "Venta Acumulada",
+    "PENDIENTE DE VENTA": "GAP Venta Mes",
+    "PENDIENTE DE META": "GAP Meta Mes"
+}
+
+
+
+dict_reemplazos_finales: 
+  PENDIENTE DE META:
+    col: "PENDIENTE DE META"
+    dict_reemplazos: {"OK" : "0"}
+  PENDIENTE DE VENTA:
+    col: "PENDIENTE DE VENTA"
+    dict_reemplazos: {"OK" : "0"}
+  Tipo Activo:
+    col: "Tipo Activo"
+    dict_reemplazos : 
+     "Neveras" : "Neverízate"
+     "Snackeros" : "Snackermanía"
+     "Puestos de Pago" : "Puestos de Pago MM"
+
+dict_constantes:
+  Cód. Vendedor : "Cód. Vendedor"
+  Nombre Vendedor Orig : "Nombre Vendedor Orig."
+  Cliente: "Cliente"
+  Venta $: "Venta $"
+  key_vtas : "key_vtas"
+  TOP_  : "TOP_"
+  Cliente Inactivo : "Cliente Inactivo" 
+  MODELO : MODELO 
+  NºInventar : 'NºInventar'
+  Cargue : "Cargue"
+  PENDIENTE DE META : "PENDIENTE DE META"
+  PENDIENTE DE VENTA : "PENDIENTE DE VENTA"
+
+#Aplica para ambos univeros, para eivitar duplicidad se deja en un punto exterior. 
+Orden_final_columnas_universos: 
+ - 'Cod Cliente'
+ - 'Razón Social'
+ - 'Nombre Comercial'
+ - 'Cód. Jefe de Ventas'
+ - 'Jefe de Ventas'
+ - 'Función Inter.'
+ - 'Cód. Vendedor'
+ - 'Nombre Vendedor'
+ - "Canal Trans."
+ - 'Subcanal Trans.'
+ - 'Segmento Trans.'
+ - 'Cód. Oficina de Ventas'
+ - 'Oficina de Ventas'
+ - 'Regional'
+ - 'Región'
+ - 'Dirección'
+ - 'Barrio'
+ - 'Municipio'
+ - 'Departamento'
+ - 'Tipo población'
+ - 'Coordenadas Unificado (Y-X)'
+ - 'Cod Actual'
+
+list_meses_invertidos:
+ - "DIC"
+ - "NOV"
+ - "OCT"
+ - "SEP"
+ - "AGO"
+ - "JUL"
+ - "JUN"
+ - "MAY"
+ - "ABR"
+ - "MAR"
+ - "FEB"
+ - "ENE"
+
+
+
+
+
+
