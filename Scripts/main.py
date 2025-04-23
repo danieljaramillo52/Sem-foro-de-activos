@@ -72,6 +72,7 @@ list_series_cli_est = [
     driver_region,
     driver_cli_atrb,
     driver_jefes_agentes,
+    driver_ldcr,
     vts_neveras_select,
     vts_snkros_pp_select,
     maestra_clientes_inac_indir,
@@ -450,8 +451,9 @@ base_final_semaforos = TF.PandasBaseTransformer.Cambiar_tipo_dato_multiples_colu
         config["dict_constantes"]["Cargue"],
         config["dict_constantes"]["PENDIENTE DE META"],
         config["dict_constantes"]["PENDIENTE DE VENTA"],
+        dict_final_cols["N.de Activos"],
     ],
-    type_data=float,
+    type_data=int,
 )
 
 base_final_semaforos_dir = base_final_semaforos[
@@ -492,7 +494,7 @@ base_final_semaforos_indir.loc[
         TF.PandasBaseTransformer.Crear_diccionario_desde_dataframe(
             df=maestra_activos_indirecta,
             col_clave=dict_final_cols["Cliente"],
-            col_valor="Regional",
+            col_valor=dict_final_cols["Regional"],
         )
     )
 )
@@ -518,47 +520,52 @@ for cada_columna in list(config["base_final"]["ajustar_cols_remp_indir"].values(
 
 
 dict_remp_reg1 = TF.PandasBaseTransformer.Crear_diccionario_desde_dataframe(
-    df=driver_region, col_clave="Regional", col_valor=dict_final_cols["Región"]
+    df=driver_region,
+    col_clave=dict_final_cols["Oficina de Ventas"],
+    col_valor=dict_final_cols["Región"],
 )
 
 dict_remp_reg2 = TF.PandasBaseTransformer.Crear_diccionario_desde_dataframe(
-    df=driver_region, col_clave="Regional", col_valor="Of Vtas"
+    df=driver_region,
+    col_clave=dict_final_cols["Oficina de Ventas"],
+    col_valor="Cód. Oficina de Ventas",
 )
 
-base_final_semaforos_dir = (
-    TF.PandasBaseTransformer.Reemplazar_columna_en_funcion_de_otra(
-        df=base_final_semaforos_dir,
-        nom_columna_a_reemplazar=dict_final_cols["Región"],
-        nom_columna_de_referencia=dict_final_cols["Oficina de Ventas"],
-        mapeo=dict_remp_reg1,
-    )
+dict_remp_reg3 = TF.PandasBaseTransformer.Crear_diccionario_desde_dataframe(
+    df=driver_region,
+    col_clave=dict_final_cols["Oficina de Ventas"],
+    col_valor=dict_final_cols["Regional"],
 )
 
-base_final_semaforos_dir = (
-    TF.PandasBaseTransformer.Reemplazar_columna_en_funcion_de_otra(
-        df=base_final_semaforos_dir,
-        nom_columna_a_reemplazar=dict_final_cols["Cód. OV"],
-        nom_columna_de_referencia=dict_final_cols["Oficina de Ventas"],
-        mapeo=dict_remp_reg2,
-    )
-)
-base_final_semaforos_indir = (
-    TF.PandasBaseTransformer.Reemplazar_columna_en_funcion_de_otra(
-        df=base_final_semaforos_indir,
-        nom_columna_a_reemplazar=dict_final_cols["Región"],
-        nom_columna_de_referencia=dict_final_cols["Oficina de Ventas"],
-        mapeo=dict_remp_reg1,
-    )
-)
+# Crear los diccionarios de mapeo
+diccionarios_reemplazo = {
+    # dict_final_cols["Región"]: dict_remp_reg1,
+    dict_final_cols["Cód. OV"]: dict_remp_reg2,
+    dict_final_cols["Regional"]: dict_remp_reg3,
+}
 
-base_final_semaforos_indir = (
-    TF.PandasBaseTransformer.Reemplazar_columna_en_funcion_de_otra(
-        df=base_final_semaforos_indir,
-        nom_columna_a_reemplazar=dict_final_cols["Cód. OV"],
-        nom_columna_de_referencia=dict_final_cols["Oficina de Ventas"],
-        mapeo=dict_remp_reg2,
+# Reemplazar columnas para base_final_semaforos_dir
+for col_destino, mapeo in diccionarios_reemplazo.items():
+    base_final_semaforos_dir = (
+        TF.PandasBaseTransformer.Reemplazar_columna_en_funcion_de_otra(
+            df=base_final_semaforos_dir,
+            nom_columna_a_reemplazar=col_destino,
+            nom_columna_de_referencia=dict_final_cols["Oficina de Ventas"],
+            mapeo=mapeo,
+        )
     )
-)
+
+# Reemplazar columnas para base_final_semaforos_indir
+for col_destino, mapeo in diccionarios_reemplazo.items():
+    base_final_semaforos_indir = (
+        TF.PandasBaseTransformer.Reemplazar_columna_en_funcion_de_otra(
+            df=base_final_semaforos_indir,
+            nom_columna_a_reemplazar=col_destino,
+            nom_columna_de_referencia=dict_final_cols["Oficina de Ventas"],
+            mapeo=mapeo,
+        )
+    )
+
 
 for cada_columna, cada_valor in config["base_final"]["ajustar_cols_constantes"][
     "Directa"
@@ -606,9 +613,10 @@ base_final = TF.reemplazar_cero_por_si_no(
 base_final = TF.marcar_cliente_inactivo(df=base_final)
 
 base_final["Cliente Al Margen X 10000"] = np.where(
-    (base_final["PENDIENTE DE VENTA"] > 0) & (base_final["PENDIENTE DE VENTA"] <= 10000),
+    (base_final["PENDIENTE DE VENTA"] > 0)
+    & (base_final["PENDIENTE DE VENTA"] <= 10000),
     "x",
-    ""
+    "",
 )
 
 cols = ["Mantenimiento Nev", "Garantia Nev"]
@@ -654,17 +662,7 @@ base_final_merge = TF.PandasBaseTransformer.Reemplazar_columna_en_funcion_de_otr
     nom_columna_de_referencia="Cód. JV",
     mapeo=dict_cod_jefe_vtas,
 )
-dict_region_regional = TF.PandasBaseTransformer.Crear_diccionario_desde_dataframe(
-    df=driver_region,
-    col_clave="Of Vtas",
-    col_valor="Regional",
-)
-base_final_merge = TF.PandasBaseTransformer.Reemplazar_columna_en_funcion_de_otra(
-    df=base_final_merge,
-    nom_columna_a_reemplazar="Regional",
-    nom_columna_de_referencia="Cód. OV",
-    mapeo=dict_region_regional,
-)
+
 
 base_final_merge.loc[:, "Estado Mes"] = base_final_merge[f"Estatus_Venta $ {ACTUAL}"]
 
@@ -691,6 +689,16 @@ base_final_merge["Venta Cero o Negativo Mes"] = np.where(
     base_final_merge["Venta Cero o Negativo Mes"],
 )
 
+base_final_merge.loc[
+    base_final_merge[config["dict_constantes"]["MODELO"]] == "Directa", "Cod Actual"
+] = base_final_merge["Cod Cliente"]
+
+base_final_merge = TF.PandasBaseTransformer.pd_left_merge(
+    base_left=base_final_merge,
+    base_right=driver_ldcr,
+    key=[dict_final_cols["Oficina de Ventas"], dict_final_cols["Canal Trans."]],
+)
+
 base_final_renombrada = TF.PandasBaseTransformer.Renombrar_columnas_con_diccionario(
     base=base_final_merge, cols_to_rename=config["base_final"]["orden_modificado"]
 )
@@ -699,9 +707,7 @@ base_final_ordenada = TF.PandasBaseTransformer.Seleccionar_columnas_pd(
     cols_elegidas=list(config["base_final"]["orden_modificado"].values()),
 )
 # Ajustar meses unicos.
-base_final_ordenada.loc[:, "N. Meses"] = base_final_ordenada["N. Meses"].fillna(
-    1
-)
+base_final_ordenada.loc[:, "N. Meses"] = base_final_ordenada["N. Meses"].fillna(1)
 
 # Exportar resultado final a excel.
 GF.exportar_a_excel(
@@ -714,4 +720,3 @@ Fin = datetime.now()
 diferencia = Fin - Inicio
 GF.imprimir_tiempo_estimado(diferencia=diferencia)
 
-print("Hola mundo!")

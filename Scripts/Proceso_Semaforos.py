@@ -288,7 +288,7 @@ def Proceso_semaforo_activos(
         ]
 
         concat_ser_cli_est_select = concat_ser_cli_est[cols_not_actual_acum]
-    
+
         df_copy_delete_cols_replace = (
             PandasBaseTransformer.Reemplazar_valores_con_dict_pd(
                 df=df_copy_delete_cols,
@@ -301,9 +301,11 @@ def Proceso_semaforo_activos(
             cols_elegidas=["Cliente", "Tipo Activo"],
             nueva_columna="Concatenar Cliente y Estrategia",
         )
-        
+
         df_copy_delete_cols_replace_merge = PandasBaseTransformer.pd_left_merge(
-            base_left=df_copy_delete_cols_replace,base_right=concat_ser_cli_est_select, key="Concatenar Cliente y Estrategia"
+            base_left=df_copy_delete_cols_replace,
+            base_right=concat_ser_cli_est_select,
+            key="Concatenar Cliente y Estrategia",
         )
 
         return df_copy_delete_cols_replace_merge, driver_topes_acum_copy_delete_cols
@@ -465,26 +467,31 @@ def Proceso_semaforo_activos(
     # Agregar columna pendiente de venta.
     def calcular_pendiente(row, mes_actual, estatus):
         if row[f"Estatus_Venta $ {mes_actual}"] == estatus:
-            if estatus == "AMARILLO":
-                return abs(row[f"Venta $ {mes_actual}"] - row[f"TOP_VERDE"])
+            if estatus != "VERDE":
+                return abs(row[f"Venta $ {mes_actual}"] - row["TOP_VERDE"])
             else:
-                return abs(row[f"Venta $ {mes_actual}"] - row[f"TOP_{estatus}"])
-        else:
-            return "OK"
+                return 0
+        return 0
 
-    estatus = ["ROJO", "AMARILLO"]
+    # Iniciar columna en 0 antes de sumar
+    base_insumo_semaforos_copy_estatus["PENDIENTE DE VENTA"] = 0
 
-    base_insumo_semaforos_copy_estatus["PENDIENTE DE VENTA"] = (
-        base_insumo_semaforos_copy_estatus.apply(
-            calcular_pendiente, axis=1, args=(mes_actual, estatus[0])
+    # Sumar los pendientes de ROJO y AMARILLO en la misma columna
+    for est in ["ROJO", "AMARILLO"]:
+        base_insumo_semaforos_copy_estatus[
+            "PENDIENTE DE VENTA"
+        ] += base_insumo_semaforos_copy_estatus.apply(
+            calcular_pendiente, axis=1, args=(mes_actual, est)
         )
-    )
 
-    base_insumo_semaforos_copy_estatus["PENDIENTE DE META"] = (
-        base_insumo_semaforos_copy_estatus.apply(
-            calcular_pendiente, axis=1, args=(mes_actual, estatus[1])
-        )
-    )
+    # Calcular pendiente para VERDE por separado
+    base_insumo_semaforos_copy_estatus["PENDIENTE DE META"] = 0
+
+    base_insumo_semaforos_copy_estatus.loc[
+        base_insumo_semaforos_copy_estatus[f"Estatus_Venta $ {mes_actual}"]
+        == "AMARILLO",
+        "PENDIENTE DE META",
+    ] = base_insumo_semaforos_copy_estatus["PENDIENTE DE VENTA"]
 
     base_insumo_semaforos_copy_estatus["Fecha Instalación Ajustada"] = (
         base_insumo_semaforos_copy_estatus["Fecha Instalación Ajustada"]
@@ -500,7 +507,7 @@ def Proceso_semaforo_activos(
     # Agregar columnas faltantes de vtas.
     # Columnas posibles de estado del config.
     cols_faltantes_posibles = config["base_final"]["cols_faltantes_posibles"]
-    
+
     for cada_col_venta in cols_faltantes_posibles.values():
         if (cada_col_venta) not in list(base_insumo_semaforos_copy_estatus.columns):
             base_insumo_semaforos_copy_estatus[cada_col_venta] = 0

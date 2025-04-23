@@ -147,6 +147,12 @@ def Lectura_archivos(
         nom_hoja=dict_drivers["nom_hoja"]["Clientes con Atributos"],
         cols=dict_drivers["cols"]["Clientes con Atributos"],
     )
+    driver_ldcr = funcion_lectura(
+        path=dict_drivers["path_drivers"],
+        nom_insumo=dict_drivers["nom_base"],
+        nom_hoja=dict_drivers["nom_hoja"]["LDCR"],
+        cols=dict_drivers["cols"]["LDCR"],
+    )
 
     ## Selecionar columnas necesarias de las bases.
     vts_neveras_select = funcion_select_cols(
@@ -233,6 +239,7 @@ def Lectura_archivos(
         driver_region,
         driver_cli_atrb,
         driver_jefes_agentes,
+        driver_ldcr,
         vts_neveras_select,
         vts_snkros_pp_select,
         maestra_clientes_inac_indir,

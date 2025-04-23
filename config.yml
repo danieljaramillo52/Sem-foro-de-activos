@@ -349,13 +349,15 @@ Drivers:
    "DRIVER REGIONALES" : "DRIVER REGIONALES"
    "Jefes y Agentes" : "Jefes y Agentes"
    "Clientes con Atributos" : "Clientes con Atributos"
+   "LDCR" : "LDCR"
  cols:
    "Activos y Cargues": 9
    "Activos y Estrategias": 5
    "HISTÓRICO TOPES" : 3
-   "DRIVER REGIONALES" : 3
+   "DRIVER REGIONALES" : 4
    "Clientes con Atributos" : 4
    "Jefes y Agentes" : 3
+   "LDCR" : 4
     
  cols_necesarias: 
    Activos y Cargues:
@@ -370,7 +372,8 @@ Drivers:
     TOPE ROJO : TOPE ROJO
 
    DRIVER REGIONALES:
-    Of Vtas : Of Vtas 
+    Cód. Oficina de Ventas :  Cód. Oficina de Ventas
+    Oficina de Ventas : Oficina de Ventas
     Regional : Regional
     Región : Región
 
@@ -495,8 +498,8 @@ base_final:
      "Canal Trans." : "Tradicional"
      "Sub Canal Trans." : "Tiendas"
      "Segmento Trans." : "Tienda Mixta"
-     "Municipio" : "N/A"
-     "Departamento" : "N/A"
+     "Municipio" : "-"
+     "Departamento" : "-"
      "Barrio" : "-"
      "Dirección" : "-"
      "Coordenadas Unificado (Y-X)" : "-"
@@ -613,6 +616,8 @@ base_final:
     "Cód. Vendedor": "Cód. Vendedor",
     "Nombre Vendedor Orig.": "Vendedor",
     "Cod Cliente": "Cód. Cliente PDV",
+    "Cód. LDCR" :  "Cód. LDCR", 
+    "Nombre LDCR" : "Nombre LDCR",
     "Canal Trans.": "Canal Transformado",
     "Sub Canal Trans.": "Subcanal Transformado",
     "Segmento Trans.": "Segmento Transformado",
@@ -678,12 +683,6 @@ base_final:
 
 
 dict_reemplazos_finales: 
-  PENDIENTE DE META:
-    col: "PENDIENTE DE META"
-    dict_reemplazos: {"OK" : "0"}
-  PENDIENTE DE VENTA:
-    col: "PENDIENTE DE VENTA"
-    dict_reemplazos: {"OK" : "0"}
   Tipo Activo:
     col: "Tipo Activo"
     dict_reemplazos : 

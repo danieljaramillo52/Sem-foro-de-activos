@@ -945,12 +945,20 @@ class PyArrowColumnTransformer:
             base_copy = (
                 base.copy()
             )  # Crear una copia para evitar problemas de SettingWithCopyWarning
-            base_copy[list_columns] = base_copy[list_columns].astype(type_data)
+
+            for columna in list_columns:
+                if type_data == int:
+                    # Convertir primero a numérico (por si viene como string tipo '1583166.0'), luego a int
+                    base_copy[columna] = pd.to_numeric(base_copy[columna], errors="coerce").fillna(0).astype(int)
+                else:
+                    base_copy[columna] = base_copy[columna].astype(type_data)
 
             return base_copy
 
         except Exception as e:
             logger.critical(f"Error en Cambiar_tipo_dato_multiples_columnas: {e}")
+            raise
+
 
     @staticmethod
     def Group_by_pa_whit_pd(
@@ -1315,12 +1323,20 @@ class PandasBaseTransformer:
             base_copy = (
                 base.copy()
             )  # Crear una copia para evitar problemas de SettingWithCopyWarning
-            base_copy[list_columns] = base_copy[list_columns].astype(type_data)
+
+            for columna in list_columns:
+                if type_data == int:
+                    # Convertir primero a numérico (por si viene como string tipo '1583166.0'), luego a int
+                    base_copy[columna] = pd.to_numeric(base_copy[columna], errors="coerce").fillna(0).astype(int)
+                else:
+                    base_copy[columna] = base_copy[columna].astype(type_data)
 
             return base_copy
 
         except Exception as e:
             logger.critical(f"Error en Cambiar_tipo_dato_multiples_columnas: {e}")
+            raise
+
 
     @staticmethod
     def Renombrar_columnas_con_diccionario(
@@ -1587,14 +1603,16 @@ class PandasBaseTransformer:
 
     @staticmethod
     def pd_left_merge(
-        base_left: pd.DataFrame, base_right: pd.DataFrame, key: str
+        base_left: pd.DataFrame | pd.Series,
+        base_right: pd.DataFrame | pd.Series,
+        key: str | list[str],
     ) -> pd.DataFrame:
         """Realiza un left join entre un DataFrame y otro DataFrame o Series.
 
         Args:
             base_left (pd.DataFrame or pd.Series): Base para el join (se convierte en DataFrame si es Series).
             base_right (pd.DataFrame or pd.Series): Datos complementarios (se convierte en DataFrame si es Series).
-            key (str): Llave para realizar el merge.
+            key (str or list of str): Llave o llaves para realizar el merge.
 
         Returns:
             pd.DataFrame: Resultado del merge.
@@ -1602,6 +1620,17 @@ class PandasBaseTransformer:
         # Convertir Series a DataFrame usando la función auxiliar
         base_left = PandasBaseTransformer.convert_series_to_dataframe(base_left)
         base_right = PandasBaseTransformer.convert_series_to_dataframe(base_right)
+
+        # Convertir llave única a lista
+        if isinstance(key, str):
+            key = [key]
+
+        # Validar que todas las llaves estén presentes en ambos DataFrames
+        for col in key:
+            if col not in base_left.columns:
+                raise KeyError(f"La columna '{col}' no existe en base_left.")
+            if col not in base_right.columns:
+                raise KeyError(f"La columna '{col}' no existe en base_right.")
 
         # Realizar el merge
         try:
@@ -1613,33 +1642,48 @@ class PandasBaseTransformer:
 
         return base
 
+
     
     @staticmethod
     def pd_left_merge_two_keys(
         base_left: pd.DataFrame,
         base_right: pd.DataFrame,
-        left_key: str,
-        right_key: str,
+        left_key: list[str] | str,
+        right_key: list[str] | str,
     ) -> pd.DataFrame:
         """Función que retorna el left join de dos dataframe de pandas.
 
         Args:
             base_left (pd.DataFrame): Dataframe que será la base del join.
             base_right (pd.DataFrame): Dataframe del cuál se extraerá la información complementaria.
-            key (str): Llave mediante la cual se va a realizar el merge o join.
+            left_key (str or list of str): Llave o llaves mediante las cuales se va a realizar el merge.
+            right_key (str or list of str): Llave o llaves en el DataFrame derecho para realizar el merge.
 
         Returns:
             pd.DataFrame: Dataframe con el merge de las dos fuentes de datos.
         """
 
         # Validar que base_left y base_right sean DataFrames de pandas
-        if not isinstance(base_left, (pd.DataFrame, pd.Series)):
+        if not isinstance(base_left, pd.DataFrame):
             raise ValueError("El argumento base_left no es un DataFrame de pandas")
-        if not isinstance(base_right, (pd.DataFrame, pd.Series)):
+        if not isinstance(base_right, pd.DataFrame):
             raise ValueError("El argumento base_right no es un DataFrame de pandas")
 
-        base = None
+        # Convertir a lista si solo se pasa una llave como string
+        if isinstance(left_key, str):
+            left_key = [left_key]
+        if isinstance(right_key, str):
+            right_key = [right_key]
 
+        # Validar que existan las columnas en ambos DataFrames
+        for col in left_key:
+            if col not in base_left.columns:
+                raise KeyError(f"La columna '{col}' no existe en base_left")
+        for col in right_key:
+            if col not in base_right.columns:
+                raise KeyError(f"La columna '{col}' no existe en base_right")
+
+        base = None
         try:
             base = pd.merge(
                 left=base_left,
@@ -1654,6 +1698,7 @@ class PandasBaseTransformer:
             raise e
 
         return base
+
 
     @staticmethod
     def merge_dfs_on_column(df_list: List[pd.DataFrame], key: str):
