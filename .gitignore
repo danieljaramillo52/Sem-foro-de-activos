@@ -1,1 +1,4 @@
 /Insumos/
+.vscode/
+__pycache__/
+*.pyc

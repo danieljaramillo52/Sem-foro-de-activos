@@ -539,7 +539,7 @@ dict_remp_reg3 = TF.PandasBaseTransformer.Crear_diccionario_desde_dataframe(
 
 # Crear los diccionarios de mapeo
 diccionarios_reemplazo = {
-    # dict_final_cols["Región"]: dict_remp_reg1,
+    dict_final_cols["Región"]: dict_remp_reg1,
     dict_final_cols["Cód. OV"]: dict_remp_reg2,
     dict_final_cols["Regional"]: dict_remp_reg3,
 }
