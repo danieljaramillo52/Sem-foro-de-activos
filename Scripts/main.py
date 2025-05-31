@@ -718,8 +718,13 @@ base_final_merge = TF.PandasBaseTransformer.pd_left_merge(
     key=[dict_final_cols["Oficina de Ventas"], dict_final_cols["Canal Trans."]],
 )
 
+
+# Controlar valores a omitir columnas.
+base_final_renombrada = TF.PandasBaseTransformer.Renombrar_columnas_con_diccionario(
+    base=base_final_merge, cols_to_rename=config["base_final"]["orden_modificado"]
+)
 base_final_replace = TF.PandasBaseTransformer.pd_left_merge(
-    base_left=base_final_merge,
+    base_left=base_final_renombrada,
     base_right=driver_top_rojo,
     key="Cliente / Estrategia",
 )
@@ -730,10 +735,6 @@ base_final_replace = TF.PandasBaseTransformer.pd_left_merge(
     key="Cliente / Estrategia")
 
 
-# Controlar valores a omitir columnas.
-base_final_renombrada = TF.PandasBaseTransformer.Renombrar_columnas_con_diccionario(
-    base=base_final_merge, cols_to_rename=config["base_final"]["orden_modificado"]
-)
 base_final_replace = aplicar_logica_omitidos(
     driver_activos_a_omitir, base_final_renombrada, TF
 )
@@ -754,16 +755,37 @@ base_final_ordenada = TF.PandasBaseTransformer.Seleccionar_columnas_pd(
     df=base_final_replace,
     cols_elegidas=list(config["base_final"]["orden_modificado"].values()),
 )
+VENTA_CERO_NEGATIVO = "Venta Cero o Negativo Mes"
 
-base_final_ordenada.loc[:, "N. Meses"] = base_final_ordenada["N. Meses"].fillna(1)
+
+base_final_ordenada2 = TF.PandasBaseTransformer.Cambiar_tipo_dato_multiples_columnas_pd(
+    base=base_final_ordenada,
+    list_columns=["Venta CERO Consecutivo"],
+    type_data=float
+)
+base_final_ordenada2.loc[:,"Venta ROJO Consecutivo"] = (
+    base_final_ordenada2["Venta ROJO Consecutivo"]
+    .replace("", 0)
+    .astype(float) 
+)
+base_final_ordenada2["Venta CERO Consecutivo"] = base_final_ordenada2.apply(
+    lambda fila: fila["Venta CERO Consecutivo"] + 1 if fila[VENTA_CERO_NEGATIVO] == "x" else "",
+    axis=1
+)
+base_final_ordenada2["Venta ROJO Consecutivo"] = base_final_ordenada2.apply(
+    lambda fila: fila["Venta ROJO Consecutivo"] + 1 if fila[f"{ACTUAL}{config['año_actual']}"] == "ROJO" else "",
+    axis=1
+)
+
+base_final_ordenada2.loc[:, "N. Meses"] = base_final_ordenada2["N. Meses"].fillna(1)
 
 base_lista_activos_merge = TF.PandasBaseTransformer.pd_left_merge(
     base_left=base_lista_activos,
     base_right=base_final_ordenada[
         [
             "Cliente / Estrategia",
-            "Denominación objeto",
-            "NºInventar",
+            "Descripción Activo",
+            "Cód. Barras",
             "Estrategia",
             "Modelo",
             "Cód. Cliente PDV",
@@ -788,7 +810,7 @@ GF.exportar_a_excel(
 # Exportar resultado final a excel.
 GF.exportar_a_excel(
     ruta_guardado=config["path_Resultados"],
-    df=base_final_ordenada,
+    df=base_final_ordenada2,
     nom_hoja="Base_semaforo_activos",
 )
 
