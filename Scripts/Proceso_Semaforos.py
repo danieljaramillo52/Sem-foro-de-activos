@@ -31,41 +31,41 @@ def Proceso_semaforo_activos(
         "fillna_vtas_estatus"
     ]
 
-    def contar_meses_consecutivos_rojos(
-        df: DataFrame, columnas_estatus: list
-    ) -> DataFrame:
-        """
-        Cuenta los meses consecutivos con estatus Rojo para cada fila.
-        Se detiene de contar si encuentra un estatus que no es Rojo.
-
-        Args:
-            df (DataFrame): DataFrame con los datos de venta y estatus.
-            columnas_estatus (list): Lista de columnas de estatus en el orden cronológico (del más antiguo al más reciente).
-
-        Returns:
-            DataFrame: DataFrame con una nueva columna 'TIEMPO EN ROJO' que tiene el conteo de meses consecutivos con estatus Rojo.
-        """
-
-        # Asumiendo que la columna 'TIEMPO EN ROJO' ya existe, si no, la crea e inicializa con cero.
-        if "TIEMPO EN ROJO" not in df.columns:
-            df["TIEMPO EN ROJO"] = 0
-
-        # Recorre las filas del DataFrame
-        for index, row in df.iterrows():
-            # Contador para los meses consecutivos en rojo
-            meses_consecutivos_rojos = 0
-            # Recorre las columnas de estatus en orden inverso
-            for col_estatus in columnas_estatus:
-                # Si encuentra un estatus rojo, incrementa el contador
-                if row[col_estatus] == "ROJO":
-                    meses_consecutivos_rojos += 1
-                # Si encuentra un estatus que no es rojo, detiene el conteo
-                else:
-                    break
-            # Asigna el contador a la columna 'TIEMPO EN ROJO'
-            df.at[index, "TIEMPO EN ROJO"] = meses_consecutivos_rojos
-
-        return df
+    #def contar_meses_consecutivos_rojos(
+    #    df: DataFrame, columnas_estatus: list
+    #) -> DataFrame:
+    #    """
+    #    Cuenta los meses consecutivos con estatus Rojo para cada fila.
+    #    Se detiene de contar si encuentra un estatus que no es Rojo.
+#
+    #    Args:
+    #        df (DataFrame): DataFrame con los datos de venta y estatus.
+    #        columnas_estatus (list): Lista de columnas de estatus en el orden cronológico (del más antiguo al más reciente).
+#
+    #    Returns:
+    #        DataFrame: DataFrame con una nueva columna 'TIEMPO EN ROJO' que tiene el conteo de meses consecutivos con estatus Rojo.
+    #    """
+#
+    #    # Asumiendo que la columna 'TIEMPO EN ROJO' ya existe, si no, la crea e inicializa con cero.
+    #    if "TIEMPO EN ROJO" not in df.columns:
+    #        df["TIEMPO EN ROJO"] = 0
+#
+    #    # Recorre las filas del DataFrame
+    #    for index, row in df.iterrows():
+    #        # Contador para los meses consecutivos en rojo
+    #        meses_consecutivos_rojos = 0
+    #        # Recorre las columnas de estatus en orden inverso
+    #        for col_estatus in columnas_estatus:
+    #            # Si encuentra un estatus rojo, incrementa el contador
+    #            if row[col_estatus] == "ROJO":
+    #                meses_consecutivos_rojos += 1
+    #            # Si encuentra un estatus que no es rojo, detiene el conteo
+    #            else:
+    #                break
+    #        # Asigna el contador a la columna 'TIEMPO EN ROJO'
+    #        df.at[index, "TIEMPO EN ROJO"] = meses_consecutivos_rojos
+#
+    #    return df
 
     def imputar_valor(row):
         if isnull(row["Cod Actual"]):
@@ -310,35 +310,35 @@ def Proceso_semaforo_activos(
 
         return df_copy_delete_cols_replace_merge, driver_topes_acum_copy_delete_cols
 
-    def contar_condiciones_automaticamente(df):
-        # Inicializar la nueva columna para el conteo
-        df["Conteo_Condicional"] = 0
-
-        # Encontrar los pares de columnas correspondientes a cada mes.
-        # Asumiendo que las columnas siguen el formato 'Estatus_Venta $ {mes}' y 'Venta $ {mes}'
-        columnas_estatus = [
-            col for col in df.columns if col.startswith("Estatus_Venta $")
-        ]
-        meses = [col.split("$ ")[1] for col in columnas_estatus]
-
-        # Crear una máscara para identificar las filas que no deben seguir siendo contadas.
-        # Inicialmente, todas las filas pueden ser contadas.
-        mask = Series(True, index=df.index)
-
-        for mes in meses:
-            col_estatus = f"Estatus_Venta $ {mes}"
-            col_venta = f"Venta $ {mes}"
-
-            # Asegúrate de que ambas columnas, estatus y venta, existen en el DataFrame
-            if col_estatus in df.columns and col_venta in df.columns:
-                # Aplicar la condición: si estatus no es 'NR' y venta es '0' o menos, sumar 1 al conteo.
-                condicion = (df[col_estatus] != "NR") & (df[col_venta] <= 0) & mask
-                # Actualizar la máscara para excluir filas con estatus 'ROJO'
-                mask &= df[col_estatus] != "ROJO"
-                # Sumar 1 al conteo solo en las filas que cumplen la condición y no han sido excluidas
-                df["Conteo_Condicional"] += condicion.astype(int)
-
-        return df
+    #def contar_condiciones_automaticamente(df):
+    #    # Inicializar la nueva columna para el conteo
+    #    df["Conteo_Condicional"] = 0
+#
+    #    # Encontrar los pares de columnas correspondientes a cada mes.
+    #    # Asumiendo que las columnas siguen el formato 'Estatus_Venta $ {mes}' y 'Venta $ {mes}'
+    #    columnas_estatus = [
+    #        col for col in df.columns if col.startswith("Estatus_Venta $")
+    #    ]
+    #    meses = [col.split("$ ")[1] for col in columnas_estatus]
+#
+    #    # Crear una máscara para identificar las filas que no deben seguir siendo contadas.
+    #    # Inicialmente, todas las filas pueden ser contadas.
+    #    mask = Series(True, index=df.index)
+#
+    #    for mes in meses:
+    #        col_estatus = f"Estatus_Venta $ {mes}"
+    #        col_venta = f"Venta $ {mes}"
+#
+    #        # Asegúrate de que ambas columnas, estatus y venta, existen en el DataFrame
+    #        if col_estatus in df.columns and col_venta in df.columns:
+    #            # Aplicar la condición: si estatus no es 'NR' y venta es '0' o menos, sumar 1 al conteo.
+    #            condicion = (df[col_estatus] != "NR") & (df[col_venta] <= 0) & mask
+    #            # Actualizar la máscara para excluir filas con estatus 'ROJO'
+    #            mask &= df[col_estatus] != "ROJO"
+    #            # Sumar 1 al conteo solo en las filas que cumplen la condición y no han sido excluidas
+    #            df["Conteo_Condicional"] += condicion.astype(int)
+#
+    #    return df
 
     def encontrar_fecha_mas_antigua(fecha_cadena):
         # Separar las fechas usando la coma como delimitador y eliminar espacios en blanco
@@ -433,9 +433,9 @@ def Proceso_semaforo_activos(
             base_insumo_semaforos_copy_estatus[columnas].fillna(cada_valor)
         )
 
-    base_insumo_semaforos_copy_estatus = contar_meses_consecutivos_rojos(
-        df=base_insumo_semaforos_copy_estatus, columnas_estatus=columnas_estatus
-    )
+    #base_insumo_semaforos_copy_estatus = contar_meses_consecutivos_rojos(
+    #    df=base_insumo_semaforos_copy_estatus, columnas_estatus=columnas_estatus
+    #)
 
     # Crear columnas constante año_actual.
     año_actual = config["Año_act"]
@@ -458,9 +458,9 @@ def Proceso_semaforo_activos(
 
     # Agregar la columna tiempo venta.
     # Aplicar la función
-    base_insumo_semaforos_copy_estatus = contar_condiciones_automaticamente(
-        df=base_insumo_semaforos_copy_estatus
-    )
+    #base_insumo_semaforos_copy_estatus = contar_condiciones_automaticamente(
+    #    df=base_insumo_semaforos_copy_estatus
+    #)
 
     base_insumo_semaforos_copy_estatus["MESES_DISPONIBLES"] = len(columnas_estatus)
 

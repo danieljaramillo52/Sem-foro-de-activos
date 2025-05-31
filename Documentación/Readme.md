@@ -1,251 +1,215 @@
-# Readme proyecto de semáforos.
-# Tabla de Contenido
+# 📘 Readme del Proyecto de Semáforos
 
-[introduccion](#Introduccion)
-   1.1 [Glosario](#Glosario-de-terminos)
-   1.2 [maestras](#Lista-de-Insumos-para-la-automatizacion-de-Comercial-Nutresa)
-   1.3 [Objetivo](#objetivo-de-la-automatizacion)
-   
-2.0 [Archivos_necesarios_para_la_automatizacion](#Lista-archivos-necesarios-para-la-automatización)
-   2.1 [maestras_de_activos](#maestras_de_activos)
-   2.1 [Universos_de_clientes](#Universos_de_clientes)
-   2.1 [Archivos_ventas](#Archivos_ventas_de_clientes)
-   2.1 [maestras_de_clientes_inactivos](#maestras_de_clientes_inactivos)
-    2.1.1 [Recomendaciones_archivos_de_insumos.](#    2.1.1 [Recomendaciones_archivos_de_insumos.](#Recomendaciones_para_los_archivos_en_Insumos.))
-   2.2[Drivers](#Drivers_necesarios_para_la_automatización)
-    2.2.1[Drivers](#Drivers.xlsx)
-        2.2.1.1[Hoja: Activos y Cargues](#Activos_y_Cargues)
-        2.2.1.2[Hoja: Activos y Estrategias](#Activos_y_Estrategias)    
-    2.2.2[Driver Neveras en Garantía](#driver_Neveras_en_Garantía)
-    2.2.3["Driver Neveras en Mantenimiento](#driver_Neveras_en_Mantenimiento)
-    2.2.2[Recomendaciones y obligaciones para la manipulación de los Drivers.](#Recomendaciones-y-obligaciones-drivers)
-    2.1.2 [Ubicacion_de_los_drivers.](#ubicacion-de-los-drivers)
-   2.3.1[Estructura_archivos_insumos](#estructura-de-los_archivos_de_insumos_y_drivers)
-   2.3.2[Estructura_Drivers](#estructura-de-los-drivers-de-información)
-   2.3.3["Estructura_y_desglose_resumen](#estructura-y-desglose-resumen)
+## 📑 Tabla de Contenido
 
-3. [Archivo_config.yml](#archivo-configyml)
-   2.2 [Visualizaciones](#Visualizaciones-del-archivo-(config_yml))
-   3.3 [Parametrizaciones_posibles](#parámetrizaciones-posibles)
+1. [Introducción](#introducción)  
+   1.1 [Glosario](#glosario-de-términos)  
+   1.2 [Maestras](#maestras_de_activos)  
+   1.3 [Objetivo](#objetivo-de-la-automatización)  
 
-4. [Resultado_Final](#Resultado_final)
+2. [Archivos necesarios para la automatización](#lista-archivos-necesarios-para-la-automatización)  
+   2.1 [Maestras de activos](#maestras_de_activos)  
+   2.2 [Universos de clientes](#universos_de_clientes)  
+   2.3 [Archivos de ventas](#archivos_ventas_de_clientes)  
+   2.4 [Maestras de clientes inactivos](#maestras_de_clientes_inactivos)  
+   2.5 [Recomendaciones para los archivos en Insumos](#recomendaciones_para_los_archivos_en_insumos)  
+   2.6 [Drivers](#drivers_necesarios_para_la_automatización)  
+   2.7 [Estructura de insumos y drivers](#estructura-de-los_archivos_de_insumos)  
 
-5. [Responsables](#responsables)
+3. [Archivo config.yml](#archivo-configyml)  
+   3.1 [Visualizaciones](#visualizaciones-del-archivo-config_yml)  
+   3.2 [Parametrizaciones posibles](#parámetrizaciones-posibles)  
 
-6. [Manual_de_usuario](#enlace-al-manual-de-usuario)
+4. [Resultado Final](#resultado_final)  
+5. [Responsables](#responsables)  
+6. [Manual de Usuario](#enlace-al-manual-de-usuario)  
 
+---
 
-# Proyecto de semaforo de activos. 
+# 🟢 Proyecto de Semáforo de Activos
 
-## Introducción
-Este manual contiene toda la información necesaria para el buen uso del asistente del proceso "Automatización de  semaforos de activos". Además, se incluye una descripción detallada de archivos, procedimientos e instrucciones sobre el contenido del ejecutable y la estructura de los archivos finales, entre otros.
+## 🔍 Introducción
+Este manual contiene toda la información necesaria para el buen uso del asistente del proceso **"Automatización de semáforos de activos"**. Además, se incluye una descripción detallada de archivos, procedimientos e instrucciones sobre el ejecutable y la estructura de los archivos finales.
 
-## Glosario de terminos
+## 📘 Glosario de términos
 
 | **Término** | **Definición** |
-|-------------|----------------|
-| **maestras_de_activos** | Las maestras de activos son las fuentes de información principales, contienen la información de activos relacionada para el proceso de Semáforos.  En esencia se refieren a archivos del tipo xlsx o csv, que seránp rocesados y cargados en memoria con diferentes funciones. Se divide en 2 categorías/ 2 archivos : maestra_activos_sap (Referencia a activos para clientes de la Directa)  y  maestra_activos_indirecta. (Referencia a actvios para clientes de la Indirecta). Cada maestra contiene un tipo especifico de clientes de CN, y a su vez; a cada maestra se le hacen modificaciones y transformaciones para prepararlas antes de consolidarlas como parte final del documento de Semaforos.
-| **Drivers** | En este contexto de trabajo, un driver tiene un significado similar a una maestra. Son las fuentes de información adicionales, contienen toda la información de relacionada el Semaforo. En esencia, se refieren a archivos del tipo xlsx o csv, que serán procesados y cargados en memoria con diferentes funciones. Estos son los archivos auxiliares, modificables, y parametrizables que sirven para modificar principalmente los datos, más no las estructuras de las maestras / Universos / o del informe final|
-| **Semáforo de activos** | El proceso de Semáforo de activos es un asistente que utiliza información de múltiples fuentes de la compañía Comercial Nutresa. De los dos tipos de atención conocidos (Directa e Indirecta). Su propisito es determinar la medición por las cuales los actvios de compañania pueden ser utilizados. |
-| **Activos_comercial** | También llamados activos, son todos los elementos utilidaos por comercial nutresa, auxiliares, entregados a clientes de la Directa y la Indirecta. En base a criterios determinados intermanete por los dueños del proceso en base al resultado de lo vislumbrado por el informe. Base_semaforo_activos.xlsx 
+|------------|----------------|
+| **maestras_de_activos** | Archivos base con datos de activos comerciales, divididos en directa e indirecta. Procesados y consolidados en el semáforo final. |
+| **Drivers** | Archivos complementarios que parametrizan el análisis. No modifican la estructura, pero sí los valores usados. |
+| **Semáforo de activos** | Sistema de evaluación del uso y estado de activos de Comercial Nutresa. |
+| **Activos_comercial** | Elementos físicos usados por clientes de Comercial Nutresa para operaciones comerciales. |
 
-## Objetivo de la automatización
-El objetivo se centra en generar un reporte de llamado semaforo de activos comercial nutresa. La automatización provee la información necesaria de insumo, para generar este reporte. Se utilizan los archivos. 
+## 🎯 Objetivo de la automatización
 
-## Lista archivos necesarios para la automatización
-      - maestra_clientes_inactivos_indirecta
-      - maestra_clientes_inactivos_directa
-      - Universo_de_clientes_directa 
-      - Universo_de_clientes_indirecta
-      - Ventas_muebles_snakeros
-      - Ventas_neveras_de_convservacion
-      - Maestra_activos_SAP
-      - Maestra_activos_Indirecta
+Generar automáticamente el reporte **"Semáforo de Activos Comercial Nutresa"**, consolidando insumos de distintas fuentes y automatizando su transformación.
 
+---
 
-## maestras_de_activos
-Archivos que contienen todos los activos comerciales que CN, provee a diferentes clientes según criterios de selección internos.  Se divide en dos archivos.
+## 📂 Lista de archivos necesarios para la automatización
 
-      - Maestra_activos_SAP
-      - Maestra_activos_Indirecta
+- `maestra_clientes_inactivos_indirecta`  
+- `maestra_clientes_inactivos_directa`  
+- `Universo_de_clientes_directa`  
+- `Universo_de_clientes_indirecta`  
+- `Ventas_muebles_snakeros`  
+- `Ventas_neveras_de_convservacion`  
+- `Maestra_activos_SAP`  
+- `Maestra_activos_Indirecta`  
 
-Que corresponden a los dos modelos de atención Directa e indirecta respectivamente.
+---
 
-#### <font color=red>**Maestra_activos_SAP,xlsx**</font>
+## 🗂️ Maestras de activos
 
-- **Hoja necesaria:**  (NP) 
-  - Activos_SAP
-- **Driver necesario:**  (NP) 
-  - Drivers.xlxs  / Neveras en Garantía.xlsx / Neveras en Mantenimiento.xlsx
-- **Insumo generado:** (NP)
-  -  Activos_SAP ( Modificación del mismo.)
--  **Tipo de archivo:** Archivo de Excel
-- **Formato de archivo:** Archivos Dinámicos / No contiene macros
-- **Macros necesarias para el proceso:** Ninguna
+Archivos que contienen todos los activos comerciales proporcionados por CN. Se clasifican según el modelo de atención:
+
+- `Maestra_activos_SAP` (Directa)  
+- `Maestra_activos_Indirecta` (Indirecta)
+
+### 📄 Maestra_activos_SAP.xlsx
+- **Hoja:** `Activos_SAP`  
+- **Drivers:** `Drivers.xlsx`, `Neveras en Garantía.xlsx`, `Neveras en Mantenimiento.xlsx`  
+- **Insumo generado:** Activos_SAP (modificado)  
+- **Tipo/Formato:** Excel dinámico, sin macros  
 
 ![Maestra_activos_SAP](Img_Readme/Maestra_activos_sap.png?raw=true)
 
-
-#### <font color=red>**Maestra_activos_Indirecta,xlsx**</font>
-
-- **Hoja necesaria:**  (NP) 
-  - Activos_Indirecta
-- **Driver necesario:**  (NP) 
-  - Drivers.xlxs  / Neveras en Garantía.xlsx / Neveras en Mantenimiento.xlsx
-- **Insumo generado:** (NP)
-  -  Activos_Indirecta ( Modificación del mismo.)
--  **Tipo de archivo:** Archivo de Excel
-- **Formato de archivo:** Archivos Dinámicos / No contiene macros
-- **Macros necesarias para el proceso:** Ninguna
+### 📄 Maestra_activos_Indirecta.xlsx
+- **Hoja:** `Activos_Indirecta`  
+- **Drivers:** `Drivers.xlsx`, `Neveras en Garantía.xlsx`, `Neveras en Mantenimiento.xlsx`  
+- **Insumo generado:** Activos_Indirecta (modificado)  
+- **Tipo/Formato:** Excel dinámico, sin macros  
 
 ![Maestra_activos_Indirecta](Img_Readme/Maestra_activos_Indir.png?raw=true)
 
-### Ubicación y carpeta maestras de activos.
-![Ruta_maestras_activos](Img_Readme/Ruta_maestras_activos.png?raw=true)
+📁 **Ubicación:** Carpeta `Insumos`
 
-*Nota: Las maestras de activos e encuentran directamente dentro de la carpeta de Insumos 
+![Ruta_maestras_activos](Img_Readme/Ruta_maestras_activos.png?raw=true)
 
 ---
 
-## Archivos_ventas_de_clientes
+## 💰 Archivos de ventas de clientes
 
-Archivos que contiene la ventas de los clientes de comercial nutresa. Divididos por Puestos de Pago / Snackeros / Neveras. Se utilizan los siguientes 2 archivos.
+Archivos que registran ventas por tipo de activo: Neveras y Muebles Snackeros.
 
-      - Ventas_muebles_snakeros
-      - Ventas_neveras_de_convservacion
+- `Ventas_muebles_snakeros`  
+- `Ventas_neveras_de_convservacion`
 
-Nota: El archivo de Ventas_muebles_snakeros contiene los clientes con (Muebles Snackeros / Puestos de pago. Y así se manejan sus vtas.)
+📝 *Nota: Muebles Snackeros se agrupan como "puestos de pago".*
 
-#### <font color=red>**Ventas_Neveras_de_Conservación.xlsx**</font>
-
-- **Hoja necesaria:**  (NP) 
-  - Informe 1
-- **Driver necesario:**  (NP) 
-  Ninguno 
-- **Insumo generado:** (NP)
-  -  Informe 1 ( Modificación del mismo.)
--  **Tipo de archivo:** Archivo de Excel
-- **Formato de archivo:** Archivos Dinámicos / No contiene macros
-- **Macros necesarias para el proceso:** Ninguna
+### 📄 Ventas_Neveras_de_Conservación.xlsx
+- **Hoja:** `Informe 1`  
+- **Driver necesario:** Ninguno  
+- **Insumo generado:** Informe 1 (modificado)  
+- **Tipo/Formato:** Excel dinámico, sin macros  
 
 ![Venta_Neveras_de_conservación](Img_Readme/Ventas_Neveras_de_Conservación.png?raw=true)
 
-#### <font color=red>**Ventas_Muebles_Snackeros.xlsx**</font>
-
-- **Hoja necesaria:**  (NP) 
-  - Consolidado
-- **Driver necesario:**  (NP) 
-  - Ninguno
-- **Insumo generado:** (NP)
-  -  Consolidado ( Modificación del mismo.)
--  **Tipo de archivo:** Archivo de Excel
-- **Formato de archivo:** Archivos Dinámicos / No contiene macros
-- **Macros necesarias para el proceso:** Ninguna
+### 📄 Ventas_Muebles_Snackeros.xlsx
+- **Hoja:** `Consolidado`  
+- **Driver necesario:** Ninguno  
+- **Insumo generado:** Consolidado (modificado)  
+- **Tipo/Formato:** Excel dinámico, sin macros  
 
 ![Ventas_Muebles_Snackeros](Img_Readme/Ventas_Muebles_Snackeros.png?raw=true)
 
+📁 **Ubicación:** Carpeta de archivos de ventas
 
-### Ubicación Y Carpeta Archivos de Ventas.
 ![Ruta_Archivos_Ventas](Img_Readme/Ruta_archivos_ventas.png?raw=true)
 
+---
+
+
+
 --- 
+...
 
-## Universos_de_clientes
+---
 
-Archivos que contiene los clientes tanto de la directa como de la indirecta y que tienen el proposito de rellenar o traer la información de clientes que pertenezcan a las maestras de activos. Casi en su totalidad. Se componen nuevamente de 2 archivos.
+## 👥 Universos de clientes
 
-      - UniversoDirecta.xlsx
-      - UniversoInirecta.xlsx
+Archivos que contienen la base de clientes atendidos por Comercial Nutresa, tanto de la Directa como de la Indirecta. Se usan para validar y complementar los activos asociados a cada cliente.
 
-Nota: Los archvios de "Univeros" contienen todos los clientes considerados activos dentro de la estrcutra y organigrama de Comercial Nutresa.Par los clientes inactvios, se usan de referencia las maestras de clientes inactivos. 
+- `UniversoDirecta.xlsx`  
+- `UniversoIndirecta.xlsx`
 
-#### <font color=red>**UniversoIndirecta.xlsx**</font>
+📝 *Nota: Estos archivos representan los clientes activos. Para clientes inactivos, se usan las maestras correspondientes.*
 
-- **Hoja necesaria:**  (NP) 
-  - Informe 1
-- **Driver necesario:**  (NP) 
-  Ninguno 
-- **Insumo generado:** (NP)
-  -  Informe 1 ( Modificación del mismo.)
--  **Tipo de archivo:** Archivo de Excel
-- **Formato de archivo:** Archivos Dinámicos / No contiene macros
-- **Macros necesarias para el proceso:** Ninguna
+### 📄 UniversoIndirecta.xlsx
+- **Hoja necesaria:** `Informe 1`  
+- **Driver necesario:** Ninguno  
+- **Insumo generado:** Informe 1 (modificado)  
+- **Tipo/Formato:** Excel dinámico, sin macros  
 
 ![Universo_Indirecta](Img_Readme/Universo_Indirecta.png?raw=true)
 
-#### <font color=red>**UniversoDirecta.xlsx**</font>
-
-- **Hoja necesaria:**  (NP) 
-  - Hoja1
-- **Driver necesario:**  (NP) 
-  - Ninguno
-- **Insumo generado:** (NP)
-  -  Hoja1 ( Modificación del mismo.)
--  **Tipo de archivo:** Archivo de Excel
-- **Formato de archivo:** Archivos Dinámicos / No contiene macros
-- **Macros necesarias para el proceso:** Ninguna
+### 📄 UniversoDirecta.xlsx
+- **Hoja necesaria:** `Hoja1`  
+- **Driver necesario:** Ninguno  
+- **Insumo generado:** Hoja1 (modificado)  
+- **Tipo/Formato:** Excel dinámico, sin macros  
 
 ![Universo_Directa](Img_Readme/Universo_Directa.png?raw=true)
 
-### Ubicación Y Carpeta Archivos de Ventas.
+📁 **Ubicación:** Carpeta de archivos de universo
+
 ![Ruta_Archivos_Universo](Img_Readme/Ruta_Insumos_Universo.png?raw=true)
 
 ---
 
-## Maestras_de_clientes_inactivos 
-Archivos que contiene clientes tanto de la directa como de la indirecta en estatus "Inactivo", tiene el proposito de rellenar o traer la información de clientes que pertenezcan a las maestras de activos y que no hayan sido tratados prevaimente por los Universos de clientes (UniversoDirecta|UniversoIndirecta). Se componen nuevamente de 2 archivos.
+## 🚫 Maestras de clientes inactivos
 
-      - Maestra Clientes Inactivos Directa.xlsx
-      - Maestra Clientes Inactivos Indirecta.xlsx
+Archivos que contienen clientes en estatus "Inactivo" para las atenciones Directa e Indirecta. Sirven para identificar clientes que no aparezcan en los universos pero tengan relación con activos.
 
-Nota: Los archvios de "Univeros" contienen todos los clientes considerados activos dentro de la estrcutra y organigrama de Comercial Nutresa.Par los clientes inactvios, se usan de referencia las maestras de clientes inactivos. 
+- `Maestra Clientes Inactivos Directa.xlsx`  
+- `Maestra Clientes Inactivos Indirecta.xlsx`
 
+📝 *Nota: Estas maestras complementan los archivos Universo, aportando contexto sobre clientes no activos que deben excluirse del análisis final.*
 
-#### <font color=red>**Maestra Clientes Inactivos Directa.xlsx.xlsx**</font>
-
-- **Hoja necesaria:**  (NP) 
-  - Clientes_Inactivos
-- **Driver necesario:**  (NP) 
-  Ninguno 
-- **Insumo generado:** (NP)
-  -  Clientes_Inactivos ( Modificación del mismo.)
--  **Tipo de archivo:** Archivo de Excel
-- **Formato de archivo:** Archivos Dinámicos / No contiene macros
-- **Macros necesarias para el proceso:** Ninguna
+### 📄 Maestra Clientes Inactivos Directa.xlsx
+- **Hoja necesaria:** `Clientes_Inactivos`  
+- **Driver necesario:** Ninguno  
+- **Insumo generado:** Clientes_Inactivos (modificado)  
+- **Tipo/Formato:** Excel dinámico, sin macros  
 
 ![Maestra_Clientes_Inactivos_Directa.xlsx](Img_Readme/Maestra_Clientes_Inactivos_Directa.png?raw=true)
 
-#### <font color=red>**Maestra Clientes Inactivos Indirecta.xlsx.xlsx**</font>
+### 📄 Maestra Clientes Inactivos Indirecta.xlsx
+- **Hoja necesaria:** `Clientes_Inactivos`  
+- **Driver necesario:** Ninguno  
+- **Insumo generado:** Clientes_Inactivos (modificado)  
+- **Tipo/Formato:** Excel dinámico, sin macros  
 
-- **Hoja necesaria:**  (NP) 
-  - Clientes_Inactivos
-- **Driver necesario:**  (NP) 
-  - Ninguno
-- **Insumo generado:** (NP)
-  -  Hoja1 ( Modificación del mismo.)
--  **Tipo de archivo:** Archivo de Excel
-- **Formato de archivo:** Archivos Dinámicos / No contiene macros
-- **Macros necesarias para el proceso:** Ninguna
+![Maestra_Clientes_Inactivos_Indirecta](Img_Readme/Maestra_Clientes_Inactivos_Indirecta.png?raw=true)
 
-![Maestra Clientes Inactivos Indirecta.xlsx](Img_Readme/Maestra_Clientes_Inactivos_Indirecta.png?raw=true)
+📁 **Ubicación:** Carpeta de insumos - Subcarpeta `Maestras_inactivos`
 
-### Ubicación Y Carpeta Archivos de Ventas.
 ![Ruta_Archivos_Universo](Img_Readme/Ruta_Insumos_Universo.png?raw=true)
 
---- 
+---
 
-## Recomendaciones_para_los_archivos_en_Insumos.
 
-<ul id="requisitos">
-  <li>No mover ni sacar ninguna carpeta y/o archivo de la carpeta insumos</li>
-  <li>No eliminar ninguno de los archivos anteriormente descritos (solo modificarlos en nombre del archivo y/o nombre de la hoja si se quiere aunque se recomienda trabajar con nombres genéricos)
-  <li>Verificar que la extensión siempre sea la misma .xlsx</li>
-  <li>No cambiar el nombre a la carpeta anterior (Insumos) Ni cambiar su ubicación</li>
-  <li>No cambiar el nombre de las carpetas dentro de ella. (Drivers) / (DB)</li>
-  <li>En caso de querer cambiar el nombre (Del archivo o la hoja) cambiar el parámetro (Luego se explicará cómo hacerlo.)</li>
-  <li>No agregar a la carpeta archivos adicionales con los mismos nombres que puedan generar conflictos en la automatización.</li>
-  <li>Si se desea cambiar el nombre de los archivos se debe hacer parametrizándolos. Proceso que se explicará más adelante en las modificaciones del config.yml.</li>
-</ul>
+📦 Recomendaciones para los archivos en Insumos
+Para asegurar el correcto funcionamiento del sistema de automatización, es fundamental seguir estas recomendaciones con respecto a la carpeta Insumos y su contenido:
+
+✅ Buenas prácticas
+📁 No mover ni sacar archivos o subcarpetas de la carpeta Insumos.
+
+🗑️ No eliminar ninguno de los archivos descritos (pueden modificarse pero no eliminarse).
+
+📝 Mantener la extensión de los archivos como .xlsx.
+
+📌 No cambiar el nombre de la carpeta Insumos ni su ubicación.
+
+📂 No renombrar las subcarpetas internas como Drivers, DB, etc.
+
+🔁 Si se desea cambiar el nombre de un archivo o hoja, esto debe hacerse parametrizando el cambio en el archivo config.yml.
+
+⚠️ No agregar archivos con nombres duplicados que puedan generar conflictos.
+
+🧱 Respetar la estructura de columnas dentro de los archivos: no modificar encabezados, posiciones ni agregar columnas adicionales sin parametrización.
+
+
 
 ![Visualizalización_carpeta_insumos](Img_readme/Carpeta_insumos.png?raw=true)
 
@@ -254,92 +218,91 @@ Nota: Los archvios de "Univeros" contienen todos los clientes considerados activ
 
 
 --- 
-# Drivers  
-
-(Consultar dfn en Glosario de terminos.)
+...
 
 ---
-## Drivers_necesarios_para_la_automatización
-      - Drivers.xlsx
-      - Neveras en Garantía.xlsx
-      - Neveras en Mantenimiento.xlsx
-  
 
+## 🛠️ Drivers necesarios para la automatización
 
-#### <font color=red>**Drivers.xlsx**</font>
+Los drivers son archivos auxiliares que contienen información complementaria y parametrizable para el proceso de automatización. Estos deben mantenerse actualizados y con el formato adecuado:
 
-- **Hoja necesaria:**  (NP) 
+- `Drivers.xlsx`
+- `Neveras en Garantía.xlsx`
+- `Neveras en Mantenimiento.xlsx`
+
+### 📄 Drivers.xlsx
+
+- **Hojas necesarias:**
   - Activos y Cargues
   - Activos y Estrategias
   - DRIVER REGIONALES
   - HISTÓRICO TOPES
 
-- **Insumo dependiente:** (NP)
-  -  Maestra_activos_SAP.xlsx / Maestra_activos_INDIRECTA.xlsx
--  **Tipo de archivo:** Archivo de Excel
-- **Formato de archivo:** Archivos Dinámicos / No contiene macros
-- **Macros necesarias para el proceso:** Ninguna
+- **Insumos dependientes:** `Maestra_activos_SAP.xlsx`, `Maestra_activos_INDIRECTA.xlsx`
+- **Tipo/Formato:** Excel dinámico, sin macros
 
-![Maestra Clientes Inactivos Indirecta.xlsx](Img_Readme/Drivers.png?raw=true)
+![Drivers](Img_Readme/Drivers.png?raw=true)
 
+### 📄 Neveras en Garantía.xlsx
 
-#### <font color=red>**Neveras en Garantía.xlsx**</font>
-
-- **Hoja necesaria:**  (NP) 
-  - Garantía Neveras
-- **Insumo dependiente:** (NP)
-  -  Maestra_activos_SAP.xlsx / Maestra_activos_INDIRECTA.xlsx
--  **Tipo de archivo:** Archivo de Excel
-- **Formato de archivo:** Archivos Dinámicos / No contiene macros
-- **Macros necesarias para el proceso:** Ninguna
+- **Hoja necesaria:** Garantía Neveras
+- **Insumos dependientes:** `Maestra_activos_SAP.xlsx`, `Maestra_activos_INDIRECTA.xlsx`
+- **Tipo/Formato:** Excel dinámico, sin macros
 
 ![Neveras_en_Garantia](Img_Readme/Neveras_en_Garantía.png?raw=true)
 
+### 📄 Neveras en Mantenimiento.xlsx
 
-#### <font color=red>**Neveras en Mantenimiento.xlsx**</font>
-
-- **Hoja necesaria:**  (NP) 
-  - Mantenimiento Neveras
-- **Insumo dependiente:** (NP)
-  -  Maestra_activos_SAP.xlsx / Maestra_activos_INDIRECTA.xlsx
--  **Tipo de archivo:** Archivo de Excel
-- **Formato de archivo:** Archivos Dinámicos / No contiene macros
-- **Macros necesarias para el proceso:** Ninguna
+- **Hoja necesaria:** Mantenimiento Neveras
+- **Insumos dependientes:** `Maestra_activos_SAP.xlsx`, `Maestra_activos_INDIRECTA.xlsx`
+- **Tipo/Formato:** Excel dinámico, sin macros
 
 ![Neveras_en_Mantenimiento](Img_Readme/Neveras_en_Mantenimiento.png?raw=true)
 
+📁 **Ubicación de los drivers:** Carpeta `Insumos/Drivers`
 
-### Ubicacion-de-los-drivers
 ![Ruta_Archivos_Universo](Img_Readme/Ubicación_drivers.png?raw=true)
 
-#### Recomendaciones y obligaciones Drivers.
-<ul>
-    <li>No mover los archivos de la carpeta "Insumos".</li>
-    <li>No eliminar ninguno de los 3 archivos mencionados anteriormente (solo se pueden modificar en nombredelarchivo y/o nombre de la hoja)</li>
-    <li>Verificar que la extensión del archivo siempre sea la misma (.xlsx).</li>
-    <li>No cambiar el nombre de la carpeta anterior ("Insumos")ni cambiar su ubicación.</li>
-    <li>En caso de querer cambiar elnombre del archivo o de la hoja,cambiar el parámetro según las instrucciones proporcionadas.</li>
-    <li>No agregar archivos adicionales a la carpeta con los mismos nombres que puedan generar conflictos en la automatización.</li>
-    <li>Respetar los nombres de las columnas de cada archivo y mantener la estructura para facilitar la parametrización y reconocimiento fácil.</li>
-    <li>Para consultar la estructurade los drivers, se proporcionauna visualización de las columnas utilizadas. Para ver la estructura completa y correcta, consultar "Estructura_insumos_drivers.xlsx" dentro de la carpeta de documentación.</li>
-    <li><b>Es importante tener encuenta que puede haber nombres repetidos de columnas en los drivers, y esto no debe cambiarse en ninguna columna, especialmente en el driver_cadenas.</b></li>
-    </ul>
+### 📋 Recomendaciones y obligaciones sobre los Drivers
 
+- 📁 No mover los archivos fuera de la carpeta `Insumos`.
+- 🗑️ No eliminar los drivers mencionados (pueden modificarse con cuidado).
+-  Mantener la extensión `.xlsx`.
+-  No cambiar el nombre de la carpeta `Insumos` ni de la subcarpeta `Drivers`.
+- 🧾 Si se renombra un archivo o una hoja, debe reflejarse en `config.yml`.
+- ⚠️ No agregar archivos con nombres duplicados.
+- Respetar las estructuras y nombres de columnas.
+-  Evitar duplicidad de nombres en las columnas (especialmente en `driver_cadenas`).
 
-## Estructura-de-los_archivos_de_insumos
-Las estructuras de los insumos utilizados en la automatización estan descritos en el archivo, dentro de la carpeta documentación Semaforo/Documentación/Estructuras_insumos_drivers.xlsx Consultar Hoja Estructura_archivos_insumos 
+ Para más información sobre estructura y columnas, consultar el archivo:
+**`Estructuras_insumos_drivers.xlsx`** hoja **`Diccionario_elementos`** dentro de la carpeta `Documentación`.
 
-![Archivo_Estructuras](Img_Readme/Estructura_insumos_drivers.png?raw=true)
+![Estructura_insumos_drivers](Img_Readme/Estructura_insumos_drivers.png?raw=true)
 
+---
 
-Muestra un comilado de como deben verse los archivos y un fragmento de los datos contenidos en cada columna. 
+## 🧱 Estructura de los archivos de insumos
 
-Similarmente ocurre con los drivers necesarios para la automatización. 
-Consultar como se indica en:. **Estructuras_insumos_drivers.xlsx**
+La estructura de los archivos utilizados en la automatización está definida en el archivo `Estructuras_insumos_drivers.xlsx`.
 
-### Diccionario de elementos. 
-En el archivo Estructuras_insumos_drivers.xlsx, se encuentra la hoja 
-**Diccionario_elementos**  una tabla con la estrucutra de nombre de archivo, número de columnas de cada archivo, nombre de las hojas en cada archivo. Parámetros que hay que mantener para garantizar una estructura y el funcionamiento de una automatización. 
+📍 Ubicación: `Semáforo/Documentación/Estructuras_insumos_drivers.xlsx`
+
+- Hoja clave: `Estructura_archivos_insumos`
+- Contiene ejemplos de estructuras de columnas, formatos esperados y parámetros obligatorios para funcionamiento.
+
+### 📘 Diccionario de elementos
+
+Hoja: `Diccionario_elementos`  
+Incluye una tabla con:
+- Nombre de archivo
+- Cantidad de columnas por hoja
+- Nombre de hojas
+- Parámetros críticos
+
+Esto permite parametrizar adecuadamente todos los insumos desde `config.yml`.
+
+---
+
 
 
 ## Archivo (config.yml)
@@ -533,6 +496,7 @@ Consultar Manual de usuario para parámetrización de estas columnas de estrateg
 
 ## Enlace al manual de usuario. 
 [Manual de Usuario](ManualDeUsuario.md) 
+
 
 
 

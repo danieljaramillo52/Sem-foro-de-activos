@@ -34,14 +34,13 @@ def Transformaciones_drivers(
     drv_ac_estra_orig = drivers[0]
     driver_ac_carg_orig = drivers[1]
     driver_manto_neveras = drivers[2]
-    driver_nev_garantia = drivers[3]
     # Proceso de transformación de los drivers.
 
     # Crear copia de los dataframes originales para trbajar.
     drv_ac_estra_copy = drv_ac_estra_orig.copy()
     drv_ac_carg_copy = driver_ac_carg_orig.copy()
     drv_manto_neve = driver_manto_neveras.copy()
-    drv_nev_grtia = driver_nev_garantia.copy()
+
 
     """Buscamos crear dos drivers para el proceso. 1.) Driver_activos_indirecta 2.) Driver información de topes y campañas. """
 
@@ -69,7 +68,7 @@ def Transformaciones_drivers(
     )
 
     # Duplicar la columna CÓDIGO DE BARRAS.
-    for cada_driver in [driver_ac_estra_select, drv_manto_neve, drv_nev_grtia]:
+    for cada_driver in [driver_ac_estra_select, drv_manto_neve]: 
         cada_driver.loc[:, N_INVENTAR] = cada_driver[COL_COD_BARRAS].copy()
 
     df_por_estrategia = [drv_ac_estra_copy]
@@ -111,12 +110,6 @@ def Transformaciones_drivers(
         cols_to_rename=config["Drivers"]["Nev_mantto"]["cols_rename"],
     )
 
-    # Garantia Neveras.
-    drv_nev_grtia_rename = Pandas_Functions.Renombrar_columnas_con_diccionario(
-        base=drv_nev_grtia,
-        cols_to_rename=config["Drivers"]["Neveras_garantia"]["cols_rename"],
-    )
-
     # Estrategias
     df_estrategias = Pandas_Functions.Renombrar_columnas_con_diccionario(
         base=df_estrategias,
@@ -138,5 +131,5 @@ def Transformaciones_drivers(
         dict_act_indir,
         df_estrategias_select,
         drv_manto_neve_rename.drop_duplicates(),
-        drv_nev_grtia_rename.drop_duplicates(),
+
     )

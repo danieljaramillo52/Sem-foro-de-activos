@@ -1898,6 +1898,63 @@ class PandasBaseTransformer:
             raise e
 
         return df
+    
+    def Reemplazar_columna_en_funcion_de_otra_extendido(
+        df: pd.DataFrame,
+        nom_columna_a_reemplazar: str,
+        nom_columna_de_referencia: str,
+        mapeo: dict,
+        separador: str = ", ",
+        buscar_en_toda_la_fila: bool = False
+    ) -> pd.DataFrame:
+        """
+        Reemplaza los valores en una columna en función de otra columna,
+        o si cualquier valor de la fila está presente en el mapeo (cuando se activa la bandera).
+
+        Args:
+            df (pd.DataFrame): El DataFrame de entrada.
+            nom_columna_a_reemplazar (str): Nombre de la columna a reemplazar.
+            nom_columna_de_referencia (str): Columna utilizada como referencia para el mapeo.
+            mapeo (dict): Diccionario que mapea valores a reemplazar.
+            separador (str): Separador usado para dividir múltiples valores en una celda.
+            buscar_en_toda_la_fila (bool): Si es True, busca en toda la fila (no solo en la columna de referencia).
+
+        Returns:
+            pd.DataFrame: DataFrame con los valores reemplazados.
+        """
+        try:
+            logger.info(f"Inicio de reemplazo en '{nom_columna_a_reemplazar}'")
+
+            def obtener_valor_reemplazo(fila):
+                # 1. Intentar con la columna de referencia
+                ref_valor = fila[nom_columna_de_referencia]
+                if isinstance(ref_valor, str):
+                    for val in ref_valor.split(separador):
+                        val = val.strip()
+                        if val in mapeo:
+                            return mapeo[val]
+
+                # 2. Si la bandera está activa, buscar en toda la fila
+                if buscar_en_toda_la_fila:
+                    for valor in fila:
+                        if isinstance(valor, str):
+                            for subval in valor.split(separador):
+                                subval = subval.strip()
+                                if subval in mapeo:
+                                    return mapeo[subval]
+
+                # 3. Si no hay coincidencias, mantener el valor actual
+                return fila[nom_columna_a_reemplazar]
+
+            df[nom_columna_a_reemplazar] = df.apply(obtener_valor_reemplazo, axis=1)
+            logger.success(f"Reemplazo exitoso en '{nom_columna_a_reemplazar}'")
+
+        except Exception as e:
+            logger.critical(f"Reemplazo fallido en '{nom_columna_a_reemplazar}'")
+            raise e
+
+        return df
+
 
     def Reemplazar_valores_con_dict_pd(
         df: pd.DataFrame, columna: str, diccionario_mapeo: dict

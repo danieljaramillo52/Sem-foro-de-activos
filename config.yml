@@ -185,7 +185,7 @@ Insumos:
       "Fe.suministro" :  col_comas
       "Denominación objeto" : col_comas
       "Mantenimiento Nev": col_comas
-      "Garantia Nev": col_comas
+      #"Garantia Nev": col_comas
    cols_agrup_concat:
     - "Cliente"
     - "Tipo Activo"
@@ -198,7 +198,7 @@ Insumos:
     - "TOP_VERDE"
     - "TOP_ROJO"
     - "Mantenimiento Nev"
-    - "Garantia Nev"
+    #- "Garantia Nev"
    cols_mod_fecha:
     - "Fe.suministro"
     - "Creado el"
@@ -269,7 +269,7 @@ Insumos:
     "Fe.suministro" :  col_comas
     "Denominación objeto" : col_comas
     "Mantenimiento Nev": col_comas
-    "Garantia Nev": col_comas
+    #"Garantia Nev": col_comas
    cols_mod_fecha:
     - "Fecha Comodato"
     - "Fecha Exhibidor"
@@ -350,6 +350,11 @@ Drivers:
    "Jefes y Agentes" : "Jefes y Agentes"
    "Clientes con Atributos" : "Clientes con Atributos"
    "LDCR" : "LDCR"
+   "Activos a Omitir" : "Activos a Omitir"
+   "ROJOS" : "ROJOS"
+   "VENTA CERO" : "VENTA CERO"
+
+
  cols:
    "Activos y Cargues": 9
    "Activos y Estrategias": 5
@@ -358,6 +363,9 @@ Drivers:
    "Clientes con Atributos" : 4
    "Jefes y Agentes" : 3
    "LDCR" : 4
+   "Activos a Omitir" : 2
+   "ROJOS" : 2
+   "VENTA CERO" : 2
     
  cols_necesarias: 
    Activos y Cargues:
@@ -365,7 +373,10 @@ Drivers:
        - Cargue
        - TOP_VERDE
        - TOP_ROJO
-   
+
+   Activos a Omitir:
+     nom_cols: 
+
    HISTÓRICO TOPES:
     Cliente / Estrategia : Cliente / Estrategia
     TOPE VERDE : TOPE VERDE
@@ -403,17 +414,17 @@ Drivers:
    cols_rename: 
     CÓDIGO DE BARRAS: "Mantenimiento Nev"
       
- Neveras_garantia:
-   nom_base : "Neveras en Garantía.xlsx"
-   nom_hoja: "Garantía Neveras"
-   cols: 1
-
-   cols_duplicar:  
-     CÓDIGO DE BARRAS:
-       - NºInventar
-    
-   cols_rename: 
-    CÓDIGO DE BARRAS : "Garantia Nev"
+ #Neveras_garantia:
+ #  nom_base : "Neveras en Garantía.xlsx"
+ #  nom_hoja: "Garantía Neveras"
+ #  cols: 1
+#
+ #  cols_duplicar:  
+ #    CÓDIGO DE BARRAS:
+ #      - NºInventar
+ #   
+ #  cols_rename: 
+ #   CÓDIGO DE BARRAS : "Garantia Nev"
   
   #Maestras de Clientes.
  Maestra_Clientes_Directa:
@@ -579,7 +590,6 @@ base_final:
    "TOP_VERDE" : "TOP_VERDE"
    "TOP_ROJO" : "TOP_ROJO"
    "Mantenimiento Nev" : "Mantenimiento Nev"
-   "Garantia Nev" : "Garantia Nev"
    "Snackermanía 3.0" : "Snackermanía 3.0"
    "Neverízate 2.0" : "Neverízate 2.0"
    "Estrategia_Agrupada" : "Estrategia_Agrupada" 
@@ -596,15 +606,15 @@ base_final:
    "Estatus_Venta $ OCT" : "Estatus_Venta $ OCT"
    "Estatus_Venta $ NOV" : "Estatus_Venta $ NOV"
    "Estatus_Venta $ DIC" : "Estatus_Venta $ DIC"
-   "TIEMPO EN ROJO" : "TIEMPO EN ROJO"
-   "Conteo_Condicional" : "TIEMPO VENTA CERO"
+   #"TIEMPO EN ROJO" :     "TIEMPO EN ROJO"
+   #"Conteo_Condicional" : "TIEMPO VENTA CERO"
 
   orden_modificado:
     {
     "Tipo Activo": "Estrategia",
-    "Concatenar Cliente y Estrategia": "Concatenar Cliente y Estrategia",
+    "Concatenar Cliente y Estrategia": "Cliente / Estrategia",
     "Cliente": "Concatenar Cliente",
-    "Cod Barras": "Cod Barras",
+    "Cod Barras": "Cód. Barras",
     "Año_act": "Año",
     "Mes_act": "Mes",
     "MODELO": "Modelo",
@@ -640,7 +650,7 @@ base_final:
     "Estatus_Venta Acum.": "Estado Acumulado",
     "Cargue": "Cargue Activo(s)",
     "Mantenimiento Nev": "Mantenimiento",
-    "Garantia Nev": "Omitir",
+    "Omitir": "Omitir",
     Venta Cero o Negativo Mes: "Venta Cero o Negativo Mes",
     "Cliente Inactivo": "Cliente Inactivo",
     "Cliente Al Margen X 10000": "Cliente Al Margen x $10.000",
@@ -661,8 +671,8 @@ base_final:
     "Estatus_Venta $ OCT": "OCT2025",
     "Estatus_Venta $ NOV": "NOV2025",
     "Estatus_Venta $ DIC": "DIC2025",
-    "TIEMPO EN ROJO": "Tiempo Rojo",
-    "TIEMPO VENTA CERO": "Tiempo Venta Cero",
+    "Venta ROJO Consecutivo" : "Venta ROJO Consecutivo",
+    "Venta CERO Consecutivo" : "Venta CERO Consecutivo",
     "Venta $ ENE": "Enero",
     "Venta $ FEB": "Febrero",
     "Venta $ MAR": "Marzo",

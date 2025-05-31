@@ -84,7 +84,7 @@ def exportar_a_excel(
 
 @Registro_tiempo
 def Lectura_insumos_excel(
-    path: str, nom_insumo: str, nom_hoja: str , engine = "openpyxl", cols: int | list = None, 
+    path: str, nom_insumo: str, nom_hoja: str , engine = "openpyxl", cols: int | list = None,modo_pruebas=False 
 ) -> pd.DataFrame:
     """Lee archivos de Excel con cualquier extensión y carga los datos de una hoja específica.
 
@@ -106,6 +106,9 @@ def Lectura_insumos_excel(
     base_leida = None
 
     try:
+        
+        nrows = 2 if modo_pruebas else None
+        
         logger.info(f"Inicio lectura {nom_insumo} Hoja: {nom_hoja}")
         base_leida = pd.read_excel(
             path + nom_insumo,
@@ -113,6 +116,7 @@ def Lectura_insumos_excel(
             usecols=list(range(0, cols)),
             dtype=str,
             engine=engine,
+            nrows=nrows
         )
 
         logger.success(

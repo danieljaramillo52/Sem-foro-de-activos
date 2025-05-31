@@ -6,6 +6,7 @@ from datetime import datetime
 
 def Transformaciones_ma_act_indirecta(
     maestra_activos_indirecta: pa.Table,
+    maestra_act_indir_compta: pa.Table,
     Pyarrow_Functions: Type,
     Pandas_Functions: Type,
     config: dict,
@@ -31,13 +32,19 @@ def Transformaciones_ma_act_indirecta(
 
     # Definimos constantes
     N_INVENTAR = config["Drivers"]["Nev_mantto"]["cols_duplicar"]["CÓDIGO DE BARRAS"]
+    COL_COD_BARRAS = "Cód. Barras"
+    COL_NOMBRE_ACTIVO = "Nombre del Activo"
+    COL_NOMBRE_ACTIVO_INDIRECTA = "Nombre Activo Indirecta"
+    COL_MODELO = "Modelo"
+    COL_REGIONAL = "Regional"
+    COL_COD_AGENTE = "Cód. Agente Comercial"
+    COL_NOMBRE_AGENTE = "Nombre Agente Comercial"
 
     # Exraemos los drivers:
     df_drv_estrategias = drivers[0]
     df_drv_top_camps = drivers[1]
     df_drv_manto_neve = drivers[2]
-    df_drv_nev_grtia = drivers[3]
-    dict_act_indir = drivers[4]
+    dict_act_indir = drivers[3]
 
     # Transformar drivers (dfs) a tablas de pyarrow
     table_drv_ac_estra = Pandas_Functions.Transform_dfs_pandas_a_pyarrow(
@@ -48,9 +55,6 @@ def Transformaciones_ma_act_indirecta(
     )
     table_drv_manto_neve = Pandas_Functions.Transform_dfs_pandas_a_pyarrow(
         df=df_drv_manto_neve
-    )
-    table_drv_nev_grtia = Pandas_Functions.Transform_dfs_pandas_a_pyarrow(
-        df=df_drv_nev_grtia
     )
 
     table_drv_top_camps = Pyarrow_Functions.cambiar_tipo_dato_columnas_pa(
@@ -63,6 +67,7 @@ def Transformaciones_ma_act_indirecta(
 
     # Creamos una copia profunda de la base original para trabajar con ella.
     maestra_inactivos_copy = copy.deepcopy(maestra_activos_indirecta)
+    maestra_act_indir_compta = copy.deepcopy(maestra_act_indir_compta)
 
     # Renombar columnas de la base.
     maestra_inactivos_copy_rename = Pyarrow_Functions.Renombrar_cols_con_dict_pa(
@@ -81,10 +86,17 @@ def Transformaciones_ma_act_indirecta(
         )
     )
 
+    maestra_act_indir_compta = Pyarrow_Functions.reemplazar_valores_con_diccionario_pa(
+        tabla=maestra_act_indir_compta,
+        nombre_columna="Nombre Activo Indirecta",
+        diccionario_de_mapeo=dict_act_indir,
+    )
+
     # Filtros maestra de inactivos.
 
     # Instanciamos la tabla para filtrar.
     Filtrar_tabla = Pyarrow_Functions.PyArrowTablefilter(maestra_inactivos_copy_rename)
+    Filtrar_tabla2 = Pyarrow_Functions.PyArrowTablefilter(maestra_act_indir_compta)
 
     config_filtros = config["Insumos"]["Maestra_Activos_Indirecta"]["Filtros"]
 
@@ -92,6 +104,9 @@ def Transformaciones_ma_act_indirecta(
     # 1.) Clientes no "nulos"
     mask_not_null_cliente = Filtrar_tabla.mask_filter_not_null_rows(
         column_name=config_filtros["Cod. Cliente"]["Columna"]
+    )
+    mask_null_cliente = Filtrar_tabla2.mask_filter_null_rows(
+        column_name="Cód. Cliente",
     )
     # 2.) Clientes != 0
     mask_cliente_not_zero = Filtrar_tabla.mask_no_equivalente_pa(
@@ -105,13 +120,25 @@ def Transformaciones_ma_act_indirecta(
         valores=list(dict_act_indir.values()),
     )
 
+    mask_denm_obj2 = Filtrar_tabla2.Mascara_is_in_pa(
+        columna="Nombre Activo Indirecta",
+        valores=list(dict_act_indir.values()),
+    )
+
     # Combinar_mascaras
     mask_completa = Pyarrow_Functions.PyArrowTablefilter.Combinar_mask_and_pa(
         mask_cliente_not_zero, mask_denm_obj, mask_not_null_cliente
     )
 
+    mask_completa2 = Pyarrow_Functions.PyArrowTablefilter.Combinar_mask_and_pa(
+        mask_denm_obj2, mask_null_cliente
+    )
+
     # Filtrar_Tabla
     maestra_inactivos_copy_filter = Filtrar_tabla.Filtrar_tabla_pa(mask=mask_completa)
+    maestra_act_indir_compta_filter = Filtrar_tabla2.Filtrar_tabla_pa(
+        mask=mask_completa2
+    )
 
     # Imputamos los valores nulos de la fecha de suministro con la fecha de creación.
     cols_reemplazar_nulos = config["Insumos"]["Maestra_Activos_Indirecta"][
@@ -159,12 +186,6 @@ def Transformaciones_ma_act_indirecta(
         join_key=N_INVENTAR,
     )
 
-    maestra_act_indir_mod_cols = Pyarrow_Functions.Join_combine_pyarrow(
-        table_left=maestra_act_indir_mod_cols,
-        table_right=table_drv_nev_grtia,
-        join_key=N_INVENTAR,
-    )
-
     # Agregamos la información de las campañas.
     maestra_act_indir_mod_cols = Pyarrow_Functions.Join_combine_pyarrow(
         table_left=maestra_act_indir_mod_cols,
@@ -173,7 +194,7 @@ def Transformaciones_ma_act_indirecta(
     )
 
     maestra_act_indir_mod_cols2 = maestra_act_indir_mod_cols.to_pandas()
-    
+
     maestra_act_indir_mod_cols2 = Pandas_Functions.Reemplazar_valores_con_dict_pd(
         df=maestra_act_indir_mod_cols2,
         columna="Tipo Activo",
@@ -181,10 +202,12 @@ def Transformaciones_ma_act_indirecta(
             "Neveras": "Neverízate",
             "Snackeros": "Snackermanía",
             "Puestos de Pago": "Puestos de Pago MM",
-        }
+        },
     )
-    maestra_act_indir_mod_cols_pd = Pandas_Functions.Transform_dfs_pandas_a_pyarrow(df=maestra_act_indir_mod_cols2)
-    
+    maestra_act_indir_mod_cols_pd = Pandas_Functions.Transform_dfs_pandas_a_pyarrow(
+        df=maestra_act_indir_mod_cols2
+    )
+
     array_concat = (
         Pyarrow_Functions.TableColumnConcatenator.concatenar_cols_seleccionadas(
             table=maestra_act_indir_mod_cols_pd,
@@ -253,8 +276,24 @@ def Transformaciones_ma_act_indirecta(
         group_col=cols_agrup_completas[0:3],
         sum_cols=cols_agrup_completas[3:],
     )
-
+    
+    maestra_act_indir_compta_filter = maestra_act_indir_compta_filter.to_pandas()
+    maestra_act_indir_compta_rename = maestra_act_indir_compta_filter.rename(
+        columns={COL_NOMBRE_ACTIVO_INDIRECTA: COL_NOMBRE_ACTIVO}
+    )
+    maestra_act_indir_compta_rename.loc[:, COL_MODELO] = "Indirecta"
+    maestra_act_indir_compta_filter_select = maestra_act_indir_compta_rename[
+        [
+            COL_COD_BARRAS,
+            COL_NOMBRE_ACTIVO,
+            COL_MODELO,
+            COL_REGIONAL,
+            COL_COD_AGENTE,
+            COL_NOMBRE_AGENTE,
+        ]
+    ]
     return (
         maestra_concatenada_agrupada.to_pandas().drop_duplicates(),
         maestra_inactivos_indiv_pd_select,
+        maestra_act_indir_compta_filter_select,
     )

@@ -6,6 +6,7 @@ from datetime import datetime
 
 def Transformaciones_ma_act_directa(
     maestra_activos_sap: pa.Table,
+    maestra_act_sap_compta: pa.Table,
     Pyarrow_Functions: Type,
     Pandas_Functions: Type,
     config: dict,
@@ -32,13 +33,22 @@ def Transformaciones_ma_act_directa(
     """ Tener en cuenta que se toma parte de la configuración para esta ejecución: """
 
     # Definimos constantes
-    N_INVENTAR = config["Drivers"]["Nev_mantto"]["cols_duplicar"]["CÓDIGO DE BARRAS"]
+    N_INVENTAR = config["Drivers"]["Nev_mantto"]["cols_duplicar"]["CÓDIGO DE BARRAS"]# Constantes de nombres de columnas
+    COL_COD_BARRAS = "Cód. Barras"
+    COL_NOMBRE_ACTIVO = "Nombre del Activo"
+    COL_MODELO = "Modelo"
+    COL_REGIONAL = "Regional"
+    COL_COD_AGENTE = "Cód. Agente Comercial"
+    COL_NOMBRE_AGENTE = "Nombre Agente Comercial"
+
+    # Valor por defecto para campos faltantes
+    VALOR_POR_DEFECTO = "-"
+
 
     # Exraemos los drivers:
     df_drv_estrategias = drivers[0]
     df_drv_top_camps = drivers[1]
     df_drv_manto_neve = drivers[2]
-    df_drv_nev_grtia = drivers[3]
 
     # Transformar drivers (dfs) a tablas de pyarrow
     table_drv_ac_estra = Pandas_Functions.Transform_dfs_pandas_a_pyarrow(
@@ -49,9 +59,6 @@ def Transformaciones_ma_act_directa(
     )
     table_drv_manto_neve = Pandas_Functions.Transform_dfs_pandas_a_pyarrow(
         df=df_drv_manto_neve
-    )
-    table_drv_nev_grtia = Pandas_Functions.Transform_dfs_pandas_a_pyarrow(
-        df=df_drv_nev_grtia
     )
 
     table_drv_top_camps = Pyarrow_Functions.cambiar_tipo_dato_columnas_pa(
@@ -65,10 +72,13 @@ def Transformaciones_ma_act_directa(
     # Creamos una copia profunda de la base original para trabajar con ella.
     maestra_activos_sap_copy = copy.deepcopy(maestra_activos_sap)
 
+    maestra_activos_sin_cliente = copy.deepcopy(maestra_act_sap_compta)
+
     """ Filtrar información requerida de la maestra de activos. """
 
     # Instancia de la clase.
     Filtrar_tabla = Pyarrow_Functions.PyArrowTablefilter(maestra_activos_sap_copy)
+    Filtrar_tabla2 = Pyarrow_Functions.PyArrowTablefilter(maestra_activos_sin_cliente)
 
     config_filtrado = config["Insumos"]["Maestra_Activos_SAP"]["Filtros"]
 
@@ -86,6 +96,9 @@ def Transformaciones_ma_act_directa(
         columna=config_filtrado["Cliente"]["Columna"],
         start_string=config_filtrado["Cliente"]["Valor"],
     )
+    mask_sin_cliente = Filtrar_tabla2.mask_filter_null_rows(
+        column_name=config_filtrado["Cliente"]["Columna"],
+    )
     mask_activos = Filtrar_tabla.mask_filter_filas_sin_letras(
         columna=config_filtrado["NºInventar"]["Columna"],
     )
@@ -93,7 +106,12 @@ def Transformaciones_ma_act_directa(
         columna=config_filtrado["StatUsu"]["Columna"],
         valores=config_filtrado["StatUsu"]["Valor"],
     )
+    mask_status2 = Filtrar_tabla2.Mascara_is_in_pa(
+        columna="Status",
+        valores=config_filtrado["StatUsu"]["Valor"],
+    )
     mask_status_invertida = Filtrar_tabla.Invertir_mascara_pa(mask=mask_status)
+    mask_status_invertida2 = Filtrar_tabla2.Invertir_mascara_pa(mask=mask_status2)
 
     mask_modelo = Filtrar_tabla.mask_equivalente_pa(
         columna=config_filtrado["Modelo"]["Columna"],
@@ -103,10 +121,24 @@ def Transformaciones_ma_act_directa(
         columna=config_filtrado["Denominación objeto"]["Columna"],
         valores=unicos_col_dn_objt,
     )
+    mask_denominacion_objeto2 = Filtrar_tabla2.Mascara_is_in_pa(
+        columna="Nombre del Activo",
+        valores=unicos_col_dn_objt,
+    )
+
+    mask_completa_sin_act = Pyarrow_Functions.PyArrowTablefilter.Combinar_mask_and_pa(
+        mask_sin_cliente, mask_denominacion_objeto2, mask_status_invertida2
+    )
+
+    maestra_activos_sin_cliente = Filtrar_tabla2.Filtrar_tabla_pa(mask_completa_sin_act)
 
     # Combinar mascaras de filtrado.
     mask_completa = Pyarrow_Functions.PyArrowTablefilter.Combinar_mask_and_pa(
-        mask_cliente, mask_modelo, mask_status_invertida, mask_activos, mask_denominacion_objeto
+        mask_cliente,
+        mask_modelo,
+        mask_status_invertida,
+        mask_activos,
+        mask_denominacion_objeto,
     )
 
     # Tabla filtrada.
@@ -153,12 +185,6 @@ def Transformaciones_ma_act_directa(
     maestra_activos_sap_filtrada = Pyarrow_Functions.Join_combine_pyarrow(
         table_left=maestra_activos_sap_filtrada,
         table_right=table_drv_manto_neve,
-        join_key=N_INVENTAR,
-    )
-
-    maestra_activos_sap_filtrada = Pyarrow_Functions.Join_combine_pyarrow(
-        table_left=maestra_activos_sap_filtrada,
-        table_right=table_drv_nev_grtia,
         join_key=N_INVENTAR,
     )
 
@@ -231,8 +257,17 @@ def Transformaciones_ma_act_directa(
         group_col=cols_agrup_completas[0:3],
         sum_cols=cols_agrup_completas[3:],
     )
+    maestra_activos_sin_cliente_pd = maestra_activos_sin_cliente.to_pandas()
+
+    maestra_activos_sin_cliente_pd_select = maestra_activos_sin_cliente_pd[
+        [COL_COD_BARRAS, COL_NOMBRE_ACTIVO, COL_MODELO, COL_REGIONAL]
+    ]
+
+    maestra_activos_sin_cliente_pd_select.loc[:,COL_COD_AGENTE] = VALOR_POR_DEFECTO
+    maestra_activos_sin_cliente_pd_select.loc[:,COL_NOMBRE_AGENTE] = VALOR_POR_DEFECTO
+
 
     return (
         maestra_concatenada_agrupada.to_pandas().drop_duplicates(),
-        maestra_activos_indiv_pd_select,
+        maestra_activos_indiv_pd_select, maestra_activos_sin_cliente_pd_select
     )

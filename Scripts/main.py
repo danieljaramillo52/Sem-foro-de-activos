@@ -38,6 +38,7 @@ import Transformaciones_drivers as TDV
 import Transformaciones_Vtas as TVTAS
 import Proceso_Semaforos as PS
 import Proceso_camapañas_final as PCF
+from Procesador_omitidos import aplicar_logica_omitidos
 
 
 Inicio = datetime.now()
@@ -62,17 +63,19 @@ list_series_cli_est = [
 (
     universo_directa_select,
     universo_indirecta_select,
-    maestra_activos_sap_select,
-    maestra_activos_indir_select,
+    maestra_activos_sap,
+    maestra_activos_indirecta,
     driver_ac_estra,
     driver_ac_carg,
     driver_manto_neveras,
-    driver_nev_garantia,
+    driver_activos_a_omitir,
     driver_topes_acum,
     driver_region,
     driver_cli_atrb,
     driver_jefes_agentes,
     driver_ldcr,
+    driver_venta_cero,
+    driver_top_rojo,
     vts_neveras_select,
     vts_snkros_pp_select,
     maestra_clientes_inac_indir,
@@ -86,6 +89,15 @@ list_series_cli_est = [
     dict_insumos=config["Insumos"],
     dict_drivers=config["Drivers"],
 )
+
+maestra_activos_sap_select = maestra_activos_sap[
+    config["Insumos"]["Maestra_Activos_SAP"]["cols_necesarias"]
+]
+
+# Maestra inactivos indirecta
+maestra_activos_indir_select = maestra_activos_indirecta[
+    config["Insumos"]["Maestra_Activos_Indirecta"]["cols_necesarias"]
+]
 
 nuevas_cols_ma_act_sap = config["Insumos"]["Maestra_Activos_SAP"][
     "cols_nuevas_necesarias"
@@ -116,16 +128,23 @@ table_mtra_act_sap = TF.PandasBaseTransformer.Transform_dfs_pandas_a_pyarrow(
 table_mtra_indir_sap = TF.PandasBaseTransformer.Transform_dfs_pandas_a_pyarrow(
     df=TF.PandasBaseTransformer.Remove_duplicates(df=maestra_activos_indir_select)
 )
+# Transformar Universos y Mestras a tablas de pyarrow.
+table_mtra_act_sap_compta = TF.PandasBaseTransformer.Transform_dfs_pandas_a_pyarrow(
+    df=TF.PandasBaseTransformer.Remove_duplicates(df=maestra_activos_sap)
+)
+table_mtra_indir_compta = TF.PandasBaseTransformer.Transform_dfs_pandas_a_pyarrow(
+    df=TF.PandasBaseTransformer.Remove_duplicates(df=maestra_activos_indirecta)
+)
 
 # Definir los diccionarios de campañas estrategias.
 
-drv_top_camps, dict_act_indir, drv_estrategias, drv_manto_neve, drv_nev_grtia = (
+
+drv_top_camps, dict_act_indir, drv_estrategias, drv_manto_neve = (  # drv_nev_grtia = (
     TDV.Transformaciones_drivers(
         drivers=[
             driver_ac_estra,
             driver_ac_carg,
             driver_manto_neveras,
-            driver_nev_garantia,
         ],
         Pandas_Functions=TF.PandasBaseTransformer,
         config=config,
@@ -142,20 +161,23 @@ universo_de_clientes = TUD.Trasformaciones_universos(
 )
 
 # Proceso maestras de activos.
-maestra_act_sap_def, maestra_activos_indiv_pd_select = (
+
+maestra_act_sap_def, maestra_activos_indiv_pd_select, maestra_activos_sin_cliente = (
     TMAD.Transformaciones_ma_act_directa(
         maestra_activos_sap=table_mtra_act_sap,
+        maestra_act_sap_compta = table_mtra_act_sap_compta,
         Pyarrow_Functions=TF.PyArrowColumnTransformer,
         Pandas_Functions=TF.PandasBaseTransformer,
         config=config,
-        drivers=[drv_estrategias, drv_top_camps, drv_manto_neve, drv_nev_grtia],
+        drivers=[drv_estrategias, drv_top_camps, drv_manto_neve],
     )
 )
 
 # Proceso maestras de activos.
-maestra_act_indir_def, maestra_inactivos_indiv_pd_select = (
+maestra_act_indir_def, maestra_inactivos_indiv_pd_select, maestra_inactivos_sin_cliente = (
     TMID.Transformaciones_ma_act_indirecta(
         maestra_activos_indirecta=table_mtra_indir_sap,
+        maestra_act_indir_compta = table_mtra_indir_compta,
         Pyarrow_Functions=TF.PyArrowColumnTransformer,
         Pandas_Functions=TF.PandasBaseTransformer,
         config=config,
@@ -163,7 +185,6 @@ maestra_act_indir_def, maestra_inactivos_indiv_pd_select = (
             drv_estrategias,
             drv_top_camps,
             drv_manto_neve,
-            drv_nev_grtia,
             dict_act_indir,
         ],
     )
@@ -172,10 +193,8 @@ base_lista_activos = TF.PandasBaseTransformer.concatenate_dataframes(
     dataframes=[maestra_inactivos_indiv_pd_select, maestra_activos_indiv_pd_select]
 )
 
-GF.exportar_a_excel(
-    ruta_guardado=config["path_Resultados"],
-    df=base_lista_activos,
-    nom_hoja="Lista_activos_cliente",
+base_lista_activos_sin_cliente = TF.PandasBaseTransformer.concatenate_dataframes(
+    dataframes=[maestra_activos_sin_cliente, maestra_inactivos_sin_cliente]
 )
 
 # Vamos a agregar las correspondientes ventas a las maestras.
@@ -619,7 +638,7 @@ base_final["Cliente Al Margen X 10000"] = np.where(
     "",
 )
 
-cols = ["Mantenimiento Nev", "Garantia Nev"]
+cols = (["Mantenimiento Nev"],)  # "Garantia Nev"]
 for col in cols:
     base_final[col] = np.where(base_final[col] == "0", "", "x")
 
@@ -699,16 +718,73 @@ base_final_merge = TF.PandasBaseTransformer.pd_left_merge(
     key=[dict_final_cols["Oficina de Ventas"], dict_final_cols["Canal Trans."]],
 )
 
+base_final_replace = TF.PandasBaseTransformer.pd_left_merge(
+    base_left=base_final_merge,
+    base_right=driver_top_rojo,
+    key="Cliente / Estrategia",
+)
+
+base_final_replace = TF.PandasBaseTransformer.pd_left_merge(
+    base_left=base_final_replace,
+    base_right=driver_venta_cero,
+    key="Cliente / Estrategia")
+
+
+# Controlar valores a omitir columnas.
 base_final_renombrada = TF.PandasBaseTransformer.Renombrar_columnas_con_diccionario(
     base=base_final_merge, cols_to_rename=config["base_final"]["orden_modificado"]
 )
+base_final_replace = aplicar_logica_omitidos(
+    driver_activos_a_omitir, base_final_renombrada, TF
+)
+
+base_final_replace = TF.PandasBaseTransformer.pd_left_merge(
+    base_left=base_final_replace,
+    base_right=driver_top_rojo,
+    key="Cliente / Estrategia",
+)
+
+base_final_replace = TF.PandasBaseTransformer.pd_left_merge(
+    base_left=base_final_replace,
+    base_right=driver_venta_cero,
+    key="Cliente / Estrategia")
+
+
 base_final_ordenada = TF.PandasBaseTransformer.Seleccionar_columnas_pd(
-    df=base_final_renombrada,
+    df=base_final_replace,
     cols_elegidas=list(config["base_final"]["orden_modificado"].values()),
 )
-# Ajustar meses unicos.
+
 base_final_ordenada.loc[:, "N. Meses"] = base_final_ordenada["N. Meses"].fillna(1)
 
+base_lista_activos_merge = TF.PandasBaseTransformer.pd_left_merge(
+    base_left=base_lista_activos,
+    base_right=base_final_ordenada[
+        [
+            "Cliente / Estrategia",
+            "Denominación objeto",
+            "NºInventar",
+            "Estrategia",
+            "Modelo",
+            "Cód. Cliente PDV",
+            "Oficina de Ventas",
+            "Cód. Jefe de Ventas",
+            "Jefe de Ventas",
+        ]
+    ],
+    key="Cliente / Estrategia",
+)
+
+GF.exportar_a_excel(
+    ruta_guardado=config["path_Resultados"],
+    df=base_lista_activos,
+    nom_hoja="Lista_activos_cliente",
+)
+GF.exportar_a_excel(
+    ruta_guardado=config["path_Resultados"],
+    df=base_lista_activos_sin_cliente,
+    nom_hoja="Lista_activos_cliente",
+)
 # Exportar resultado final a excel.
 GF.exportar_a_excel(
     ruta_guardado=config["path_Resultados"],
@@ -716,7 +792,7 @@ GF.exportar_a_excel(
     nom_hoja="Base_semaforo_activos",
 )
 
+
 Fin = datetime.now()
 diferencia = Fin - Inicio
 GF.imprimir_tiempo_estimado(diferencia=diferencia)
-
