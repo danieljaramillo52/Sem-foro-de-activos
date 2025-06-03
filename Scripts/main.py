@@ -805,7 +805,7 @@ GF.exportar_a_excel(
 GF.exportar_a_excel(
     ruta_guardado=config["path_Resultados"],
     df=base_lista_activos_sin_cliente,
-    nom_hoja="Lista_activos_cliente",
+    nom_hoja="Lista_activos_sin_cliente",
 )
 # Exportar resultado final a excel.
 GF.exportar_a_excel(
