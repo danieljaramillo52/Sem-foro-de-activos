@@ -165,7 +165,7 @@ universo_de_clientes = TUD.Trasformaciones_universos(
 maestra_act_sap_def, maestra_activos_indiv_pd_select, maestra_activos_sin_cliente = (
     TMAD.Transformaciones_ma_act_directa(
         maestra_activos_sap=table_mtra_act_sap,
-        maestra_act_sap_compta = table_mtra_act_sap_compta,
+        maestra_act_sap_compta=table_mtra_act_sap_compta,
         Pyarrow_Functions=TF.PyArrowColumnTransformer,
         Pandas_Functions=TF.PandasBaseTransformer,
         config=config,
@@ -174,20 +174,22 @@ maestra_act_sap_def, maestra_activos_indiv_pd_select, maestra_activos_sin_client
 )
 
 # Proceso maestras de activos.
-maestra_act_indir_def, maestra_inactivos_indiv_pd_select, maestra_inactivos_sin_cliente = (
-    TMID.Transformaciones_ma_act_indirecta(
-        maestra_activos_indirecta=table_mtra_indir_sap,
-        maestra_act_indir_compta = table_mtra_indir_compta,
-        Pyarrow_Functions=TF.PyArrowColumnTransformer,
-        Pandas_Functions=TF.PandasBaseTransformer,
-        config=config,
-        drivers=[
-            drv_estrategias,
-            drv_top_camps,
-            drv_manto_neve,
-            dict_act_indir,
-        ],
-    )
+(
+    maestra_act_indir_def,
+    maestra_inactivos_indiv_pd_select,
+    maestra_inactivos_sin_cliente,
+) = TMID.Transformaciones_ma_act_indirecta(
+    maestra_activos_indirecta=table_mtra_indir_sap,
+    maestra_act_indir_compta=table_mtra_indir_compta,
+    Pyarrow_Functions=TF.PyArrowColumnTransformer,
+    Pandas_Functions=TF.PandasBaseTransformer,
+    config=config,
+    drivers=[
+        drv_estrategias,
+        drv_top_camps,
+        drv_manto_neve,
+        dict_act_indir,
+    ],
 )
 base_lista_activos = TF.PandasBaseTransformer.concatenate_dataframes(
     dataframes=[maestra_inactivos_indiv_pd_select, maestra_activos_indiv_pd_select]
@@ -732,7 +734,8 @@ base_final_replace = TF.PandasBaseTransformer.pd_left_merge(
 base_final_replace = TF.PandasBaseTransformer.pd_left_merge(
     base_left=base_final_replace,
     base_right=driver_venta_cero,
-    key="Cliente / Estrategia")
+    key="Cliente / Estrategia",
+)
 
 
 base_final_replace = aplicar_logica_omitidos(
@@ -748,7 +751,8 @@ base_final_replace = TF.PandasBaseTransformer.pd_left_merge(
 base_final_replace = TF.PandasBaseTransformer.pd_left_merge(
     base_left=base_final_replace,
     base_right=driver_venta_cero,
-    key="Cliente / Estrategia")
+    key="Cliente / Estrategia",
+)
 
 
 base_final_ordenada = TF.PandasBaseTransformer.Seleccionar_columnas_pd(
@@ -760,21 +764,31 @@ VENTA_CERO_NEGATIVO = "Venta Cero o Negativo Mes"
 
 base_final_ordenada2 = TF.PandasBaseTransformer.Cambiar_tipo_dato_multiples_columnas_pd(
     base=base_final_ordenada,
-    list_columns=["Venta CERO Consecutivo"],
-    type_data=float
+    list_columns=["Venta CERO Consecutivo", "Venta ROJO Consecutivo"],
+    type_data=float,
 )
-base_final_ordenada2.loc[:,"Venta ROJO Consecutivo"] = (
-    base_final_ordenada2["Venta ROJO Consecutivo"]
-    .replace("", 0)
-    .astype(float) 
-)
+base_final_ordenada2["Venta CERO Consecutivo"] = base_final_ordenada2[
+    "Venta CERO Consecutivo"
+].fillna(0)
+base_final_ordenada2["Venta ROJO Consecutivo"] = base_final_ordenada2[
+    "Venta ROJO Consecutivo"
+].fillna(0)
+
+
 base_final_ordenada2["Venta CERO Consecutivo"] = base_final_ordenada2.apply(
-    lambda fila: fila["Venta CERO Consecutivo"] + 1 if fila[VENTA_CERO_NEGATIVO] == "x" else "",
-    axis=1
+    lambda fila: (
+        fila["Venta CERO Consecutivo"] + 1 if fila[VENTA_CERO_NEGATIVO] == "x" else ""
+    ),
+    axis=1,
 )
+
 base_final_ordenada2["Venta ROJO Consecutivo"] = base_final_ordenada2.apply(
-    lambda fila: fila["Venta ROJO Consecutivo"] + 1 if fila[f"{ACTUAL}{config['año_actual']}"] == "ROJO" else "",
-    axis=1
+    lambda fila: (
+        fila["Venta ROJO Consecutivo"] + 1
+        if fila[f"{ACTUAL}{config['año_actual']}"] == "ROJO"
+        else ""
+    ),
+    axis=1,
 )
 
 base_final_ordenada2.loc[:, "N. Meses"] = base_final_ordenada2["N. Meses"].fillna(1)
