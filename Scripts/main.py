@@ -813,7 +813,7 @@ base_lista_activos_merge = TF.PandasBaseTransformer.pd_left_merge(
 
 GF.exportar_a_excel(
     ruta_guardado=config["path_Resultados"],
-    df=base_lista_activos,
+    df=base_lista_activos_merge,
     nom_hoja="Lista_activos_cliente",
 )
 GF.exportar_a_excel(
